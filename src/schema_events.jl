@@ -1,3 +1,8 @@
+""" Define a schema and ACSet which allows for simulations that schedule events which occur
+    after some time delay. When an event occurs, a function called an event listener is called
+    on the subset of persons who were scheduled for that event, which may queue state updates or
+    schedule further events. This allows simulation of processes with memory (i.e. non-Markovian models).
+"""
 module schema_events
 
 export TheorySchedulingIBM, AbstractSchedulingIBM, SchedulingIBM,
@@ -9,8 +14,11 @@ using Catlab.CategoricalAlgebra.FinSets
 using Catlab.Present
 using Catlab.Theories
 
-using ..individual.schema_markov
+using ..individual.schema_base
 
+""" ACSet definition for an individual-based model inheriting from `TheoryIBM`
+    which allows for events to be scheduled for persons.
+"""
 @present TheorySchedulingIBM <: TheoryIBM begin
     # set of events which occur after a timed delay
     Event::Ob
@@ -33,28 +41,44 @@ end
 @abstract_acset_type AbstractSchedulingIBM <: AbstractIBM
 @acset_type SchedulingIBM(TheorySchedulingIBM, index=[:state, :state_update, :scheduled_to_event, :scheduled_to_person]) <: AbstractSchedulingIBM
 
-# schedule persons
+""" schedule_event(model::AbstractSchedulingIBM, target, delay, event)
+
+    Schedule a set of persons in `target` for the `event` after some `delay`. Note that `event` should correspond to an element
+    in the set `EventLabel` in your model.
+"""
 function schedule_event(model::AbstractSchedulingIBM, target, delay, event)
     add_parts!(model, :Scheduled, length(target), scheduled_to_person = target, delay = delay, scheduled_to_event = incident(SIR, event, :eventlabel))
 end
 
-# find those who are alredy scheduled
+""" get_scheduled(model::AbstractSchedulingIBM, event)
+
+    Get the set of persons scheduled for `event`. Note that `event` should correspond to an element
+        in the set `EventLabel` in your model.
+"""
 function get_scheduled(model::AbstractSchedulingIBM, event)
     model[:scheduled_to_person][incident(SIR, event, [:scheduled_to_event, :eventlabel])]
 end
 
-# clear scheduled persons
+""" clear_schedule(model::AbstractSchedulingIBM, target)
+
+    Clear the persons in `target` from any events they are scheduled for.
+"""
 function clear_schedule(model::AbstractSchedulingIBM, target)
     rem_parts!(model, :Scheduled, incident(model, target, [:scheduled_to_person]))
 end
 
-# handle events
+""" event_tick(model::AbstractSchedulingIBM)
+
+    Reduce all delays by 1, called at the end of a time step.
+"""
 function event_tick(model::AbstractSchedulingIBM)
-    # everyone's delay ticks down by 1
     subpart(model, :delay) .-= 1
 end
 
-# process events and call listeners when delay ticks to 0
+""" event_process(model::AbstractSchedulingIBM, t::Int)
+
+    Process events which are ready to fire.
+"""
 function event_process(model::AbstractSchedulingIBM, t::Int)
 # get every event ready to fire
 ready_to_fire = incident(model, 0, :delay)
