@@ -8,19 +8,25 @@ using Distributions: Exponential, cdf
 using Random: randsubseq
 using StatsBase: sample
 
-rate_to_prob(x::AbstractFloat) = cdf(Exponential(), x)
+function rate_to_prob(x::AbstractFloat) 
+    0.0 <= x || throw(ArgumentError("rate $x not in [0,Inf)"))
+    cdf(Exponential(), x)
+end
 
 """ bernoulli_sample(target::AbstractVector, prob::AbstractFloat)
 
 Sample without replacement from `target` with success probability `prob`.
 """
-function bernoulli_sample(target::Integer, prob::AbstractFloat)
-    @assert prob <= 1.0 && prob >= 0.0
-    randsubseq([target], prob)
+function bernoulli_sample(target::T, prob::AbstractFloat) where {T <: Integer}
+    0.0 <= prob <= 1.0 || throw(ArgumentError("probability $prob not in [0,1]"))
+    if rand() < prob
+        return [target]
+    else
+        return T[]
+    end
 end
 
 function bernoulli_sample(target::AbstractVector, prob::AbstractFloat) 
-    @assert prob <= 1.0 && prob >= 0.0
     randsubseq(target, prob)
 end
 
@@ -30,8 +36,13 @@ end
 Sample without replacement from `target` with success probability calculated
 from ``1 - \\exp(-\\mathrm{rate} * \\mathrm{dt})``.
 """
-function bernoulli_sample(target::Integer, rate::AbstractFloat, dt::AbstractFloat)
-    randsubseq([target], rate_to_prob(rate * dt))
+function bernoulli_sample(target::T, rate::AbstractFloat, dt::AbstractFloat) where {T <: Integer}
+    prob = rate_to_prob(rate * dt)
+    if rand() < prob
+        return [target]
+    else
+        return T[]
+    end
 end
 
 function bernoulli_sample(target::AbstractVector, rate::AbstractFloat, dt::AbstractFloat)
@@ -44,7 +55,7 @@ Sample without replacement from `target` where each element has a unique success
 given in the vector `prob`.
 """
 function bernoulli_sample(target::AbstractVector{T}, prob::Vector) where {T <: Integer}
-    @assert length(target) == length(prob)
+    length(target) == length(prob) || throw(ArgumentError("target and prob not of equal length"))
     samp = Vector{T}(undef, length(target))
     runif = rand(length(target))
     j = 0
@@ -70,7 +81,7 @@ Sample without replacement from `target` where each element's success probabilit
 from ``1 - \\exp(-\\mathrm{rate} * \\mathrm{dt})``.
 """
 function bernoulli_sample(target::AbstractVector{T}, rate::Vector, dt::AbstractFloat) where {T <: Integer}
-    @assert length(target) == length(rate)
+    length(target) == length(rate) || throw(ArgumentError("target and rate not of equal length"))
     prob = map((x) -> rate_to_prob(x), rate * dt)
     samp = Vector{T}(undef, length(target))
     runif = rand(length(target))
