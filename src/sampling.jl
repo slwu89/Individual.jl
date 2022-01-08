@@ -8,6 +8,8 @@ using Distributions: Exponential, cdf
 using Random: randsubseq
 using StatsBase: sample
 
+rate_to_prob(x::AbstractFloat) = cdf(Exponential(), x)
+
 """ bernoulli_sample(target::AbstractVector, prob::AbstractFloat)
 
 Sample without replacement from `target` with success probability `prob`.
@@ -29,11 +31,11 @@ Sample without replacement from `target` with success probability calculated
 from ``1 - \\exp(-\\mathrm{rate} * \\mathrm{dt})``.
 """
 function bernoulli_sample(target::Integer, rate::AbstractFloat, dt::AbstractFloat)
-    randsubseq([target], cdf(Exponential(), rate * dt))
+    randsubseq([target], rate_to_prob(rate * dt))
 end
 
 function bernoulli_sample(target::AbstractVector, rate::AbstractFloat, dt::AbstractFloat)
-    randsubseq(target, cdf(Exponential(), rate * dt))
+    randsubseq(target, rate_to_prob(rate * dt))
 end
 
 """ bernoulli_sample(target::AbstractVector{T}, prob::Vector)
@@ -69,7 +71,7 @@ from ``1 - \\exp(-\\mathrm{rate} * \\mathrm{dt})``.
 """
 function bernoulli_sample(target::AbstractVector{T}, rate::Vector, dt::AbstractFloat) where {T <: Integer}
     @assert length(target) == length(rate)
-    prob = map((x) -> cdf(Exponential(), x), rate * dt)
+    prob = map((x) -> rate_to_prob(x), rate * dt)
     samp = Vector{T}(undef, length(target))
     runif = rand(length(target))
     j = 0
