@@ -61,7 +61,6 @@ function bernoulli_sample(target::AbstractVector{T}, prob::Vector) where {T <: I
     j = 0
     for i = 1:length(target)
         0.0 <= prob[i] <= 1.0 || throw(ErrorException("probability $(prob[i]) not in [0,1]"))
-        @assert prob[i] <= 1.0 && prob[i] >= 0.0
         if runif[i] < prob[i]
             j += 1
             samp[j] = target[i]
