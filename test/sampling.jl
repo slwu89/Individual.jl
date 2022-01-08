@@ -5,7 +5,7 @@ using Test
 
     @test_throws ArgumentError bernoulli_sample([1,2,3], [0.5,0.5,0.5,0.5]) 
     @test_throws ArgumentError bernoulli_sample([1,2,3], Float64[])
-    @test_throws AssertionError bernoulli_sample([1,2,3], [1.0, Inf, 0.5])
+    @test_throws ErrorException bernoulli_sample([1,2,3], [1.0, Inf, 0.5])
 
     @test length(bernoulli_sample([1,2,3], zeros(3))) == 0 
     @test length(bernoulli_sample([1,2,3], ones(3))) == 3 
