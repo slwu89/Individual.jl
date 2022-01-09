@@ -32,3 +32,7 @@ makedocs(
     "Library Reference" => "api.md"
   ]
 )
+
+deploydocs(
+    repo = "github.com/slwu89/individual.jl.git",
+)
