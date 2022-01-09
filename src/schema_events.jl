@@ -16,7 +16,7 @@ using Catlab.Theories
 
 using ..individual.schema_base
 
-""" ACSet definition for an individual-based model inheriting from `TheoryIBM`
+""" A schema for an individual-based model inheriting from `TheoryIBM`
     which allows for events to be scheduled for persons.
 """
 @present TheorySchedulingIBM <: TheoryIBM begin
@@ -38,7 +38,14 @@ using ..individual.schema_base
     eventlistener::Attr(Event, EventListener)
 end
 
+""" An abstract ACSet for an individual-based model inheriting from `AbstractIBM`
+    which allows for events to be scheduled for persons.
+"""
 @abstract_acset_type AbstractSchedulingIBM <: AbstractIBM
+
+""" A concrete ACSet for an individual-based model inheriting from `AbstractSchedulingIBM`
+    which allows for events to be scheduled for persons.
+"""
 @acset_type SchedulingIBM(TheorySchedulingIBM, index=[:state, :state_update, :scheduled_to_event, :scheduled_to_person]) <: AbstractSchedulingIBM
 
 """ schedule_event(model::AbstractSchedulingIBM, target, delay, event)
@@ -47,7 +54,7 @@ end
     in the set `EventLabel` in your model.
 """
 function schedule_event(model::AbstractSchedulingIBM, target, delay, event)
-    add_parts!(model, :Scheduled, length(target), scheduled_to_person = target, delay = delay, scheduled_to_event = incident(SIR, event, :eventlabel))
+    add_parts!(model, :Scheduled, length(target), scheduled_to_person = target, delay = delay, scheduled_to_event = incident(model, event, :eventlabel))
 end
 
 """ get_scheduled(model::AbstractSchedulingIBM, event)
@@ -56,7 +63,7 @@ end
         in the set `EventLabel` in your model.
 """
 function get_scheduled(model::AbstractSchedulingIBM, event)
-    model[:scheduled_to_person][incident(SIR, event, [:scheduled_to_event, :eventlabel])]
+    model[:scheduled_to_person][incident(model, event, [:scheduled_to_event, :eventlabel])]
 end
 
 """ clear_schedule(model::AbstractSchedulingIBM, target)

@@ -1,6 +1,23 @@
 using individual.sampling
 using Test
 
+@testset "delay_sample with scalar rate" begin
+
+    @test length(delay_sample(0, 1.0, 1.0)) == 0
+    @test length(delay_sample(10, 0.05, 1.0)) == 10
+
+end
+
+@testset "delay_sample with vector rate" begin
+
+    @test_throws ArgumentError delay_sample(1, [1.0, 2.0], 1.0) 
+
+    @test length(delay_sample(1, [1.0], 1.0)) == 1
+    @test length(delay_sample(10, fill(0.5, 10), 1.0)) == 10
+
+end
+
+
 @testset "bernoulli_sample with vector target, vector prob" begin
 
     @test_throws ArgumentError bernoulli_sample([1,2,3], [0.5,0.5,0.5,0.5]) 

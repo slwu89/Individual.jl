@@ -10,7 +10,8 @@ using Plots, GraphViz
 # ## Introduction
 # The SIR (Susceptible-Infected-Recovered) model is the "hello, world!" model of for infectious disease simulations, 
 # and here we describe how to use the basic schema for Markov models to build it in individual.jl. We only use the
-# base `TheoryIBM` schema, because the model is a Markov chain.
+# base `TheoryIBM` schema, because the model is a Markov chain. This tutorial largely mirrors the SIR model tutorial from
+# the [R package "individual"](https://mrc-ide.github.io/individual/articles/Tutorial.html), which inspired individual.jl.
 
 # The schema looks like this:
 
@@ -42,15 +43,20 @@ steps = Int(tmax/Δt)
 R0 = 2.5
 β = R0 * γ # R0 for corresponding ODEs
 
-# initial conditions
-# S = 1, I = 2, R = 3
 initial_states = fill(1, N)
 initial_states[rand(1:N, I0)] .= 2
-state_labels = ["S", "I", "R"]
+state_labels = ["S", "I", "R"];
 
-## # Processes
+# ## Model object
 
-# In order to model infection, we need a process. This is a function that takes only a single argument, `t``, for the current time step (unused here, but can model time-dependent processes, such as seasonality or school holiday). 
+const SIR = IBM{String}()
+add_parts!(SIR, :State, length(state_labels), statelabel = state_labels)
+people = add_parts!(SIR, :Person, N)
+set_subpart!(SIR, people, :state, initial_states);
+
+# ## Processes
+
+# In order to model infection, we need a process. This is a function that takes only a single argument, `t`, for the current time step (unused here, but can model time-dependent processes, such as seasonality or school holiday). 
 # Within the function, we get the current number of infectious individuals, then calculate the per-capita force of infection on each susceptible person, λ=βI/N. 
 # Next we get the set of susceptible individuals and use the sample method to randomly select those who will be infected on this time step. 
 # The probability is given by $$ 1- e^{-\lambda \Delta t} $$. The method `bernoulli_sample` will automatically calculate that probability when given 3 arguments. Finally, we queue a state update for those individuals who were sampled.
@@ -72,14 +78,7 @@ function recovery_process(t::Int)
     queue_state_update(SIR, I, "R")
 end
 
-## # Model object
-
-SIR = IBM{String}()
-people = add_parts!(SIR, :Person, N)
-add_parts!(SIR, :State, length(state_labels), statelabel = state_labels)
-set_subpart!(SIR, people, :state, initial_states)
-
-## # Simulation
+# ## Simulation
 
 # We run a simulation and plot the results.
 

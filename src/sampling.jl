@@ -2,15 +2,34 @@
 """
 module sampling
 
-export bernoulli_sample, choose_sample
+export bernoulli_sample, choose, delay_sample
 
-using Distributions: Exponential, cdf
+using Distributions: Exponential, Geometric, cdf
 using Random: randsubseq
 using StatsBase: sample
 
 function rate_to_prob(x::AbstractFloat) 
     0.0 <= x || throw(ArgumentError("rate $x not in [0,Inf)"))
     cdf(Exponential(), x)
+end
+
+""" delay_sample(n::Integer, rate::AbstractFloat, dt::AbstractFloat)
+
+Sample time steps until an event fires given a `rate` and `dt`.
+"""
+function delay_sample(n::Integer, rate::AbstractFloat, dt::AbstractFloat)
+    prob = rate_to_prob(rate * dt)
+    rand(Geometric(prob), n) .+ 1
+end
+
+function delay_sample(n::Integer, rate::AbstractVector{T}, dt::AbstractFloat) where {T <: AbstractFloat}
+    n == length(rate) || throw(ArgumentError("number of draws must be equal to the length of 'rate'"))
+    out = Vector{Int64}(undef, n)
+    for i = 1:n
+        prob = rate_to_prob(rate[i] * dt)
+        out[i] = rand(Geometric(prob)) + 1
+    end
+    return out
 end
 
 """ bernoulli_sample(target::AbstractVector, prob::AbstractFloat)
@@ -102,12 +121,12 @@ function bernoulli_sample(target::AbstractVector{T}, rate::Vector, dt::AbstractF
 end
 
 
-""" choose_sample(target::T, K::Integer)
+""" choose(target::T, K::Integer)
 
 Return a vector of size `K` with that number of random elements selected
 without replacement from `target`.
 """
-function choose_sample(target::T, K::Integer) where {T <: Integer}
+function choose(target::T, K::Integer) where {T <: Integer}
     if K > 0 # should K > 1 be an error?
         return target
     else
@@ -115,7 +134,7 @@ function choose_sample(target::T, K::Integer) where {T <: Integer}
     end
 end
 
-function choose_sample(target::AbstractVector{T}, K::Integer) where {T <: Integer}
+function choose(target::AbstractVector{T}, K::Integer) where {T <: Integer}
     if K > 0
         target[sample(1:length(target), K, replace = false)]
     else
