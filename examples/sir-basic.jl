@@ -35,18 +35,18 @@ to_graphviz(TheoryIBM)
 N = 1000
 I0 = 5
 S0 = N - I0
-dt = 0.1
+Δt = 0.1
 tmax = 100
-steps = Int(tmax/dt)
-gamma = 1/10 # recovery rate
+steps = Int(tmax/Δt)
+γ = 1/10 # recovery rate
 R0 = 2.5
-beta = R0 * gamma # R0 for corresponding ODEs
+β = R0 * γ # R0 for corresponding ODEs
 
 # initial conditions
 # S = 1, I = 2, R = 3
-health_states = fill(1, N)
-health_states[rand(1:N, I0)] .= 2
-health_labels = ["S", "I", "R"]
+initial_states = fill(1, N)
+initial_states[rand(1:N, I0)] .= 2
+state_labels = ["S", "I", "R"]
 
 ## # Processes
 
@@ -58,9 +58,9 @@ health_labels = ["S", "I", "R"]
 function infection_process(t::Int)
     I = npeople(SIR, "I")
     N = npeople(SIR)
-    foi = beta * I/N
+    λ = β * I/N
     S = get_index_state(SIR, "S")
-    S = bernoulli_sample(S, foi, dt)
+    S = bernoulli_sample(S, λ, Δt)
     queue_state_update(SIR, S, "I")
 end
 
@@ -68,7 +68,7 @@ end
 
 function recovery_process(t::Int)
     I = get_index_state(SIR, "I")
-    I = bernoulli_sample(I, gamma, dt)
+    I = bernoulli_sample(I, γ, Δt)
     queue_state_update(SIR, I, "R")
 end
 
@@ -76,8 +76,8 @@ end
 
 SIR = IBM{String}()
 people = add_parts!(SIR, :Person, N)
-add_parts!(SIR, :State, 3, statelabel = ["S", "I", "R"])
-set_subpart!(SIR, people, :state, health_states)
+add_parts!(SIR, :State, length(state_labels), statelabel = state_labels)
+set_subpart!(SIR, people, :state, initial_states)
 
 ## # Simulation
 
@@ -93,7 +93,7 @@ for t = 1:steps
 end
 
 plot(
-    (1:steps) * dt,
+    (1:steps) * Δt,
     out,
     label=["S" "I" "R"],
     xlabel="Time",
