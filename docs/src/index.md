@@ -1,6 +1,6 @@
-# individual.jl
+# Introduction
 
-A Julia package for specifying and simulating individual based models (IBMs), which relies on
+individual.jl is a Julia package for specifying and simulating individual based models (IBMs), which relies on
 [Catlab.jl](https://algebraicjulia.github.io/Catlab.jl/stable/), especially attributed C-Sets to
 create schemas which can represent a broad class of IBMs useful for epidemiology, ecology, and the computational
 social sciences. It is inspired by the R software [individual](https://mrc-ide.github.io/individual/).
