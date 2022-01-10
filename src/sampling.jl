@@ -53,7 +53,7 @@ end
     bernoulli_sample(target::AbstractVector, rate::AbstractFloat, dt::AbstractFloat)
 
 Sample without replacement from `target` with success probability calculated
-from ``1 - \\exp(-\\mathrm{rate} * \\mathrm{dt})``.
+from ``1 - e^{-\\mathrm{rate} * \\mathrm{dt}}``
 """
 function bernoulli_sample(target::T, rate::AbstractFloat, dt::AbstractFloat) where {T <: Integer}
     prob = rate_to_prob(rate * dt)
@@ -97,7 +97,7 @@ end
 """ bernoulli_sample(target::AbstractVector{T}, rate::Vector, dt::AbstractFloat)
 
 Sample without replacement from `target` where each element's success probability is calculated
-from ``1 - \\exp(-\\mathrm{rate} * \\mathrm{dt})``.
+from ``1 - e^{-\\mathrm{rate} * \\mathrm{dt}}``.
 """
 function bernoulli_sample(target::AbstractVector{T}, rate::Vector, dt::AbstractFloat) where {T <: Integer}
     length(target) == length(rate) || throw(ArgumentError("target and rate not of equal length"))

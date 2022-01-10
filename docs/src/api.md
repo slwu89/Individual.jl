@@ -1,5 +1,4 @@
-# API reference
-
+# [API reference](@id ref_api)
 ## Basic schema
 
 Functions to create basic Markov individual-based models (IBM).
