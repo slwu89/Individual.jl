@@ -1,5 +1,5 @@
 ```@meta
-EditURL = "https://github.com/AlgebraicJulia/AlgebraicPetri.jl/blob/master/docs/examples/sir-basic.jl"
+EditURL = "https://github.com/AlgebraicJulia/AlgebraicPetri.jl/blob/master/docs/../examples/sir-basic.jl"
 ```
 
 # [Basic SIR example](@id sir_basic)
@@ -52,8 +52,8 @@ steps = Int(tmax/Δt)
 R0 = 2.5
 β = R0 * γ # R0 for corresponding ODEs
 
-initial_states = fill(1, N)
-initial_states[rand(1:N, I0)] .= 2
+initial_states = fill("S", N)
+initial_states[rand(1:N, I0)] .= "I"
 state_labels = ["S", "I", "R"];
 nothing #hide
 ````
@@ -61,11 +61,8 @@ nothing #hide
 ## Model object
 
 ````@example sir-basic
-const SIR = IBM{String}()
-add_parts!(SIR, :State, length(state_labels), statelabel = state_labels)
-people = add_parts!(SIR, :Person, N)
-set_subpart!(SIR, people, :state, initial_states);
-nothing #hide
+SIR = IBM{String}()
+initialize_states(SIR, initial_states, state_labels)
 ````
 
 ## Processes
@@ -98,7 +95,7 @@ end
 
 ## Simulation
 
-We run a simulation and plot the results.
+We draw a trajectory and plot the results.
 
 ````@example sir-basic
 out = Array{Int64}(undef, steps, 3)

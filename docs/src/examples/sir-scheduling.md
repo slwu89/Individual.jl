@@ -1,5 +1,5 @@
 ```@meta
-EditURL = "https://github.com/AlgebraicJulia/AlgebraicPetri.jl/blob/master/docs/examples/sir-scheduling.jl"
+EditURL = "https://github.com/AlgebraicJulia/AlgebraicPetri.jl/blob/master/docs/../examples/sir-scheduling.jl"
 ```
 
 # [SIR example with event scheduling](@id sir_scheduling)
@@ -51,8 +51,8 @@ steps = Int(tmax/Δt)
 R0 = 2.5
 β = R0 * γ # R0 for corresponding ODEs
 
-initial_states = fill(1, N)
-initial_states[rand(1:N, I0)] .= 2
+initial_states = fill("S", N)
+initial_states[rand(1:N, I0)] .= "I"
 state_labels = ["S", "I", "R"];
 nothing #hide
 ````
@@ -60,11 +60,8 @@ nothing #hide
 ## Model object
 
 ````@example sir-scheduling
-const SIR = SchedulingIBM{String, Int64, String, Vector{Function}}()
-add_parts!(SIR, :State, length(state_labels), statelabel = state_labels)
-people = add_parts!(SIR, :Person, N)
-set_subpart!(SIR, people, :state, initial_states);
-nothing #hide
+SIR = SchedulingIBM{String, Int64, String, Vector{Function}}()
+initialize_states(SIR, initial_states, state_labels)
 ````
 
 ## Processes
@@ -103,17 +100,14 @@ end
 ## Events
 
 The event listener associated with recovery is quite simple, just updating the state to R.
-We create an event with the label "Recovery" and a single listener, and add it to hhe model.
+We create an event with the label "Recovery" and a single listener, and add it to the model.
 
 ````@example sir-scheduling
 function recovery_listener(target, t::Int)
     queue_state_update(SIR, target, "R")
 end
 
-recovery_listeners = Function[]
-push!(recovery_listeners, recovery_listener)
-add_parts!(SIR, :Event, 1, eventlabel = "Recovery", eventlistener = [recovery_listeners]);
-nothing #hide
+add_event(SIR, "Recovery", recovery_listener)
 ````
 
 ## Simulation

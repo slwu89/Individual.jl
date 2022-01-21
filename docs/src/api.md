@@ -26,6 +26,7 @@ Create IBMs with event scheduling capabilities.
 individual.schema_events.TheorySchedulingIBM
 individual.schema_events.AbstractSchedulingIBM
 individual.schema_events.SchedulingIBM
+individual.schema_events.add_event
 individual.schema_events.schedule_event
 individual.schema_events.get_scheduled
 individual.schema_events.clear_schedule
