@@ -42,8 +42,8 @@ steps = Int(tmax/Δt)
 R0 = 2.5
 β = R0 * γ # R0 for corresponding ODEs
 
-initial_states = fill(1, N)
-initial_states[rand(1:N, I0)] .= 2
+initial_states = fill("S", N)
+initial_states[rand(1:N, I0)] .= "I"
 state_labels = ["S", "I", "R"];
 
 # ## Model object
@@ -89,9 +89,7 @@ function recovery_listener(target, t::Int)
     queue_state_update(SIR, target, "R")
 end
 
-recovery_listeners = Function[]
-push!(recovery_listeners, recovery_listener)
-add_parts!(SIR, :Event, 1, eventlabel = "Recovery", eventlistener = [recovery_listeners]);
+add_event(SIR, "Recovery", recovery_listener)
 
 # ## Simulation
 

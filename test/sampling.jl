@@ -17,7 +17,6 @@ end
 
 end
 
-
 @testset "bernoulli_sample with vector target, vector prob" begin
 
     @test_throws ArgumentError bernoulli_sample([1,2,3], [0.5,0.5,0.5,0.5]) 

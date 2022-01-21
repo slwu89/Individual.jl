@@ -6,7 +6,8 @@
 module schema_events
 
 export TheorySchedulingIBM, AbstractSchedulingIBM, SchedulingIBM,
-    schedule_event, get_scheduled, clear_schedule, event_tick, event_process
+    add_event, schedule_event, get_scheduled, clear_schedule, 
+    event_tick, event_process
 
 using Catlab
 using Catlab.CategoricalAlgebra
@@ -48,6 +49,19 @@ end
 """
 @acset_type SchedulingIBM(TheorySchedulingIBM, index=[:state, :state_update, :scheduled_to_event, :scheduled_to_person]) <: AbstractSchedulingIBM
 
+""" add_event(model::AbstractSchedulingIBM, label::String, listeners...)
+
+    Add an event to the model, with name 'label',
+"""
+function add_event(model::AbstractSchedulingIBM, label::String, listeners...)
+    !(label in subpart(model, :eventlabel)) || throw(ArgumentError("event with name 'label' already assigned in model"))
+    listener_vec = Function[]
+    for func = listeners
+        push!(listener_vec, func)
+    end
+    add_parts!(model, :Event, 1, eventlabel = label, eventlistener = [listener_vec]);
+end
+
 """ schedule_event(model::AbstractSchedulingIBM, target, delay, event)
 
     Schedule a set of persons in `target` for the `event` after some `delay`. Note that `event` should correspond to an element
@@ -69,9 +83,14 @@ end
 """ clear_schedule(model::AbstractSchedulingIBM, target)
 
     Clear the persons in `target` from any events they are scheduled for.
+    If 'target' is not specified, clear all scheduled events.
 """
 function clear_schedule(model::AbstractSchedulingIBM, target)
     rem_parts!(model, :Scheduled, incident(model, target, [:scheduled_to_person]))
+end
+
+function clear_schedule(model::AbstractSchedulingIBM)
+    rem_parts!(model, :Scheduled, parts(model, :Scheduled))
 end
 
 """ event_tick(model::AbstractSchedulingIBM)

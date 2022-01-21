@@ -95,4 +95,6 @@ end
     reset_states(SIR, initial_states)
     @test subpart(SIR, :state) == indexin(initial_states, state_labels)
 
+    # test this one zeros out state_update too
+
 end

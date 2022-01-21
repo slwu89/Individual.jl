@@ -108,16 +108,24 @@ end
 """
 function initialize_states(model::AbstractIBM, initial_states::Vector{T}, state_labels::Vector{String}) where {T <: Integer}
     length(unique(initial_states)) <= length(state_labels) || throw(ArgumentError("'initial_states' has more unique values than 'state_labels', please fix"))
-    add_parts!(model, :State, length(state_labels), statelabel = state_labels)
-    people = add_parts!(model, :Person, length(initial_states))
-    set_subpart!(model, people, :state, initial_states);
+    if nparts(model, :State) > 0
+        reset_states(model, initial_states)
+    else
+        add_parts!(model, :State, length(state_labels), statelabel = state_labels)
+        people = add_parts!(model, :Person, length(initial_states))
+        set_subpart!(model, people, :state, initial_states);
+    end
 end
 
 function initialize_states(model::AbstractIBM, initial_states::Vector{String}, state_labels::Vector{String})
     length(unique(initial_states)) <= length(state_labels) || throw(ArgumentError("'initial_states' has more unique values than 'state_labels', please fix"))
-    add_parts!(model, :State, length(state_labels), statelabel = state_labels)
-    people = add_parts!(model, :Person, length(initial_states))
-    set_subpart!(model, people, :state, indexin(initial_states, state_labels));
+    if nparts(model, :State) > 0
+        reset_states(model, initial_states)
+    else
+        add_parts!(model, :State, length(state_labels), statelabel = state_labels)
+        people = add_parts!(model, :Person, length(initial_states))
+        set_subpart!(model, people, :state, indexin(initial_states, state_labels));
+    end
 end
 
 
