@@ -5,7 +5,8 @@ module schema_base
 
 export TheoryIBM, AbstractIBM, IBM,
     npeople, nstate, statelabel, get_index_state,
-    queue_state_update, apply_state_updates, output_states
+    queue_state_update, apply_state_updates, output_states,
+    initialize_states, reset_states
 
 using Catlab
 using Catlab.CategoricalAlgebra
@@ -71,7 +72,6 @@ get_index_state(model::AbstractIBM) = parts(model, :Person)
     end of the time step.
 """
 function queue_state_update(model::AbstractIBM, persons, state)
-    @assert length(state) == 1
     if length(persons) > 0
         set_subpart!(model, persons, :state_update, incident(model, state, :statelabel)[1])
     end
@@ -97,6 +97,40 @@ end
 """
 function output_states(t::Int, model::AbstractIBM)
     [length(incident(model, i, :state)) for i = parts(model, :State)]
+end
+
+""" initialize_states(model::AbstractIBM, initial_states, state_labels::Vector{String})
+
+    Initialize the categorical states of a model. The argument `initial_states` can either
+    be provided as a vector of integers, corresponding to the internal storage of the ACSet,
+    or as a vector of strings. It should be equal in length to the population which is to be
+    simulated.
+"""
+function initialize_states(model::AbstractIBM, initial_states::Vector{T}, state_labels::Vector{String}) where {T <: Integer}
+    add_parts!(model, :State, length(state_labels), statelabel = state_labels)
+    people = add_parts!(model, :Person, length(initial_states))
+    set_subpart!(model, people, :state, initial_states);
+end
+
+function initialize_states(model::AbstractIBM, initial_states::Vector{String}, state_labels::Vector{String})
+    add_parts!(model, :State, length(state_labels), statelabel = state_labels)
+    people = add_parts!(model, :Person, length(initial_states))
+    set_subpart!(model, people, :state, indexin(initial_states, state_labels));
+end
+
+
+""" initialize_states(model::AbstractIBM, initial_states)
+
+    Reset a model's categorical states.
+"""
+function reset_states(model::AbstractIBM, initial_states::Vector{T}) where {T <: Integer}
+    set_subpart!(model, :state_update, 0)
+    set_subpart!(model, :state, initial_states);
+end
+
+function reset_states(model::AbstractIBM, initial_states::Vector{String})
+    set_subpart!(model, :state_update, 0)
+    set_subpart!(model, :state, indexin(initial_states, subpart(model, :statelabel)));
 end
 
 end

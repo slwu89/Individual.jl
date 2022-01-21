@@ -14,7 +14,7 @@ using Catlab.CategoricalAlgebra.FinSets
 using Catlab.Present
 using Catlab.Theories
 
-using ..individual.schema_base
+using ..schema_base
 
 """ A schema for an individual-based model inheriting from `TheoryIBM`
     which allows for events to be scheduled for persons.

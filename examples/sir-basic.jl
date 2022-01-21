@@ -43,16 +43,18 @@ steps = Int(tmax/Δt)
 R0 = 2.5
 β = R0 * γ # R0 for corresponding ODEs
 
-initial_states = fill(1, N)
-initial_states[rand(1:N, I0)] .= 2
+initial_states = fill("S", N)
+initial_states[rand(1:N, I0)] .= "I"
 state_labels = ["S", "I", "R"];
 
 # ## Model object
 
 const SIR = IBM{String}()
-add_parts!(SIR, :State, length(state_labels), statelabel = state_labels)
-people = add_parts!(SIR, :Person, N)
-set_subpart!(SIR, people, :state, initial_states);
+initialize_states(SIR, initial_states, state_labels)
+
+# add_parts!(SIR, :State, length(state_labels), statelabel = state_labels)
+# people = add_parts!(SIR, :Person, N)
+# set_subpart!(SIR, people, :state, initial_states);
 
 # ## Processes
 
