@@ -49,12 +49,8 @@ state_labels = ["S", "I", "R"];
 
 # ## Model object
 
-const SIR = IBM{String}()
+SIR = IBM{String}()
 initialize_states(SIR, initial_states, state_labels)
-
-# add_parts!(SIR, :State, length(state_labels), statelabel = state_labels)
-# people = add_parts!(SIR, :Person, N)
-# set_subpart!(SIR, people, :state, initial_states);
 
 # ## Processes
 

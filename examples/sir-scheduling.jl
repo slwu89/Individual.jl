@@ -48,10 +48,8 @@ state_labels = ["S", "I", "R"];
 
 # ## Model object
 
-const SIR = SchedulingIBM{String, Int64, String, Vector{Function}}()
-add_parts!(SIR, :State, length(state_labels), statelabel = state_labels)
-people = add_parts!(SIR, :Person, N)
-set_subpart!(SIR, people, :state, initial_states);
+SIR = SchedulingIBM{String, Int64, String, Vector{Function}}()
+initialize_states(SIR, initial_states, state_labels)
 
 # ## Processes
 

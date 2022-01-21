@@ -14,6 +14,8 @@ individual.schema_base.get_index_state
 individual.schema_base.queue_state_update
 individual.schema_base.apply_state_updates
 individual.schema_base.output_states
+individual.schema_base.initialize_states
+individual.schema_base.reset_states
 ```
 
 ## Event scheduling schema

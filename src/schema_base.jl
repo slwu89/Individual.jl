@@ -107,12 +107,14 @@ end
     simulated.
 """
 function initialize_states(model::AbstractIBM, initial_states::Vector{T}, state_labels::Vector{String}) where {T <: Integer}
+    length(unique(initial_states)) <= length(state_labels) || throw(ArgumentError("'initial_states' has more unique values than 'state_labels', please fix"))
     add_parts!(model, :State, length(state_labels), statelabel = state_labels)
     people = add_parts!(model, :Person, length(initial_states))
     set_subpart!(model, people, :state, initial_states);
 end
 
 function initialize_states(model::AbstractIBM, initial_states::Vector{String}, state_labels::Vector{String})
+    length(unique(initial_states)) <= length(state_labels) || throw(ArgumentError("'initial_states' has more unique values than 'state_labels', please fix"))
     add_parts!(model, :State, length(state_labels), statelabel = state_labels)
     people = add_parts!(model, :Person, length(initial_states))
     set_subpart!(model, people, :state, indexin(initial_states, state_labels));
@@ -124,11 +126,13 @@ end
     Reset a model's categorical states.
 """
 function reset_states(model::AbstractIBM, initial_states::Vector{T}) where {T <: Integer}
+    nparts(model, :Person) == length(initial_states) || throw(ArgumentError("'initial_states' must be equal to the number of persons in the model"))
     set_subpart!(model, :state_update, 0)
     set_subpart!(model, :state, initial_states);
 end
 
 function reset_states(model::AbstractIBM, initial_states::Vector{String})
+    nparts(model, :Person) == length(initial_states) || throw(ArgumentError("'initial_states' must be equal to the number of persons in the model"))
     set_subpart!(model, :state_update, 0)
     set_subpart!(model, :state, indexin(initial_states, subpart(model, :statelabel)));
 end
