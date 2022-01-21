@@ -1,4 +1,4 @@
-# Introduction
+## Introduction
 
 individual.jl is a Julia package for specifying and simulating individual based models (IBMs), which relies on
 [Catlab.jl](https://algebraicjulia.github.io/Catlab.jl/stable/), especially attributed C-Sets to
@@ -9,7 +9,7 @@ social sciences. It is inspired by the R software [individual](https://mrc-ide.g
 
 For tutorials on how to use the software, see the examples:
 
-- basic SIR model tutorial [here](@ref sir_basic)
+- SIR model tutorial [here](@ref sir_basic)
 - SIR model using event scheduling [here](@ref sir_scheduling)
 
 Exported objects are documented at the [API reference](@ref ref_api).
@@ -17,3 +17,7 @@ Exported objects are documented at the [API reference](@ref ref_api).
 ## Contributing
 
 blah
+
+## Acknowledgements
+
+individual.jl is written and maintained by Sean L. Wu [(@slwu89)](https://github.com/slwu89).

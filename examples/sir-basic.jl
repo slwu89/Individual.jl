@@ -82,7 +82,7 @@ end
 
 # ## Simulation
 
-# We run a simulation and plot the results.
+# We draw a trajectory and plot the results.
 
 out = Array{Int64}(undef, steps, 3)
 

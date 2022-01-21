@@ -85,7 +85,7 @@ end
 # ## Events
 
 # The event listener associated with recovery is quite simple, just updating the state to R.
-# We create an event with the label "Recovery" and a single listener, and add it to hhe model.
+# We create an event with the label "Recovery" and a single listener, and add it to the model.
 
 function recovery_listener(target, t::Int)
     queue_state_update(SIR, target, "R")
