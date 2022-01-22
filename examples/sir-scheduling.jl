@@ -33,7 +33,7 @@ to_graphviz(TheorySchedulingIBM)
 # ## Parameters
 
 N = 1000
-I0 = 5
+I0 = 8
 S0 = N - I0
 Δt = 0.1
 tmax = 100
@@ -53,7 +53,7 @@ state_labels = ["S", "I", "R"];
 # The second is the delay, the number of time steps after which a scheduled event will fire.
 # The third is the name for each event. The last is for the listeners associated with each event.
 
-SIR = SchedulingIBM{String, Int64, String, Vector{Function}}()
+const SIR = SchedulingIBM{String, Int64, String, Vector{Function}}()
 initialize_states(SIR, initial_states, state_labels);
 
 # ## Processes

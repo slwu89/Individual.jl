@@ -6,7 +6,7 @@
 module schema_events
 
 export TheorySchedulingIBM, AbstractSchedulingIBM, SchedulingIBM,
-    add_event, schedule_event, get_scheduled, clear_schedule, 
+    add_event, schedule_event, get_scheduled, clear_schedule,
     event_tick, event_process
 
 using Catlab

@@ -1,5 +1,5 @@
 ```@meta
-EditURL = "https://github.com/AlgebraicJulia/AlgebraicPetri.jl/blob/master/docs/../examples/sir-basic.jl"
+EditURL = "https://github.com/AlgebraicJulia/AlgebraicPetri.jl/blob/master/docs/examples/sir-basic.jl"
 ```
 
 # [Basic SIR example](@id sir_basic)
@@ -64,8 +64,9 @@ The "IBM" (Individual Based Model) schema needs the type parameter `String` beca
 single attribute, that giving names to the categorical set of states.
 
 ````@example sir-basic
-SIR = IBM{String}()
-initialize_states(SIR, initial_states, state_labels)
+const SIR = IBM{String}()
+initialize_states(SIR, initial_states, state_labels);
+nothing #hide
 ````
 
 ## Processes

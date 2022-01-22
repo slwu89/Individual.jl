@@ -1,5 +1,5 @@
 ```@meta
-EditURL = "https://github.com/AlgebraicJulia/AlgebraicPetri.jl/blob/master/docs/../examples/sir-scheduling.jl"
+EditURL = "https://github.com/AlgebraicJulia/AlgebraicPetri.jl/blob/master/docs/examples/sir-scheduling.jl"
 ```
 
 # [SIR example with event scheduling](@id sir_scheduling)
@@ -65,8 +65,9 @@ The second is the delay, the number of time steps after which a scheduled event 
 The third is the name for each event. The last is for the listeners associated with each event.
 
 ````@example sir-scheduling
-SIR = SchedulingIBM{String, Int64, String, Vector{Function}}()
-initialize_states(SIR, initial_states, state_labels)
+const SIR = SchedulingIBM{String, Int64, String, Vector{Function}}()
+initialize_states(SIR, initial_states, state_labels);
+nothing #hide
 ````
 
 ## Processes
@@ -112,7 +113,8 @@ function recovery_listener(target, t::Int)
     queue_state_update(SIR, target, "R")
 end
 
-add_event(SIR, "Recovery", recovery_listener)
+add_event(SIR, "Recovery", recovery_listener);
+nothing #hide
 ````
 
 ## Simulation

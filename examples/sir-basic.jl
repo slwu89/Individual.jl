@@ -28,13 +28,13 @@ to_graphviz(TheoryIBM)
 
 # ## Parameters
 
-# To start, we should define some parameters. The epidemic will be simulated in a population of 1000, where 5 persons are initially infectious, whose indices are randomly sampled. 
+# To start, we should define some parameters. The epidemic will be simulated in a population of 1000, where 8 persons are initially infectious, whose indices are randomly sampled. 
 # The effective contact rate β will be a function of the deterministic R0 and recovery rate γ. We also specify dt, which is the size of the time step (Δt). 
 # Because individual’s time steps are all of unit length, we scale transition probabilities by dt to create models with different sized steps, interpreting the discrete time model as a discretization of a continuous time model. 
 # If the maximum time is tmax then the overall number of time steps is tmax/dt.
 
 N = 1000
-I0 = 5
+I0 = 8
 S0 = N - I0
 Δt = 0.1
 tmax = 100
@@ -52,7 +52,7 @@ state_labels = ["S", "I", "R"];
 # The "IBM" (Individual Based Model) schema needs the type parameter `String` because it defines a
 # single attribute, that giving names to the categorical set of states.  
 
-SIR = IBM{String}()
+const SIR = IBM{String}()
 initialize_states(SIR, initial_states, state_labels);
 
 # ## Processes

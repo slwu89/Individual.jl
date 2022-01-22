@@ -11,8 +11,9 @@ For tutorials on how to use the software, see the examples:
 
 - SIR model tutorial [here](@ref sir_basic)
 - SIR model using event scheduling [here](@ref sir_scheduling)
+- SIR model with age-structure, demonstrating how to extend the ACSet types in individual.jl for more complex models [here](@ref sir_age)
 
-Exported objects are documented at the [API reference](@ref ref_api).
+The [API reference](@ref ref_api) contains information about objects and functions available to users.
 
 ## Contributing
 

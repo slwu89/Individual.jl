@@ -114,7 +114,7 @@ end
 
 end
 
-@testset "events can be scheduled and canceled" begin
+@testset "events can be scheduled, canceled, and fired" begin
 
     initial_states = ["S", "I", "R", "S", "I", "R"]
     state_labels = ["S", "I", "R", "D"]
@@ -168,6 +168,33 @@ end
     event_process(SIR, 1)
     apply_state_updates(SIR)
     @test subpart(SIR, :state) == indexin(["D", "R", "R", "R", "D", "R"], state_labels)
+
+end
+
+@testset "events with multiple listeners work" begin
+
+    initial_states = ["S", "S", "S", "S", "S", "S"]
+    state_labels = ["S", "I", "R"]
+
+    SIR = SchedulingIBM{String, Int64, String, Vector{Function}}()
+    initialize_states(SIR, initial_states, state_labels)
+
+    function listener1(target, t::Int)
+        queue_state_update(SIR, target[1], "I")
+    end
+
+    function listener2(target, t::Int)
+        queue_state_update(SIR, target[2], "I")
+    end
+
+    add_event(SIR, "Infection", listener1, listener2)
+
+    schedule_event(SIR, [1,5,3], [0,0,0], "Infection")
+
+    event_process(SIR, 1)
+    apply_state_updates(SIR)
+
+    @test subpart(SIR, :state) == indexin(["I", "S", "S", "S", "I", "S"], state_labels)
 
 end
 
