@@ -27,7 +27,8 @@ makedocs(
     "individual.jl" => "index.md",
     "Examples" => Any[
         "examples/sir-basic.md",
-        "examples/sir-scheduling.md"
+        "examples/sir-scheduling.md",
+        "examples/sir-age.md"
       ],
     "Library Reference" => "api.md"
   ]

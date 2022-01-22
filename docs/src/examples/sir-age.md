@@ -43,14 +43,14 @@ to_graphviz(TheoryAgeIBM)
 
 ## Parameters
 
-To parameterize the model from ``R_{0}`` and ``\\gamma``, we follow the method from ["Social contact patterns and control strategies for influenza in the elderly"](http://www.sherrytowers.com/towers_feng_2012.pdf).
-where ``R_{0}`` is ``\\beta / \\gamma`` multiplied by the largest eigenvalue of the reciprocal (symmetric) contact matrix.
+To parameterize the model from ``R_{0}`` and ``\gamma``, we follow the method from ["Social contact patterns and control strategies for influenza in the elderly"](http://www.sherrytowers.com/towers_feng_2012.pdf).
+where ``R_{0}`` is ``\beta / \gamma`` multiplied by the largest eigenvalue of the reciprocal (symmetric) contact matrix.
 
 We use the estimated contact matrix for Taiwan from ["Projecting social contact matrices in 152 countries using contact surveys and demographic data"](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1005697).
 
 ````@example sir-age
 N = 1000
-I0 = 5
+I0 = 8
 S0 = N - I0
 Δt = 0.1
 tmax = 100
@@ -92,7 +92,7 @@ end
 β = R0 * γ / max(eigvals(C)...)
 ````
 
-The initial states are the same as the other tutorials, 1000 individuals, 5 of whom are intially infected.
+The initial states are the same as the other tutorials, 1000 individuals, 8 of whom are intially infected.
 
 ````@example sir-age
 initial_states = fill("S", N)
@@ -104,7 +104,8 @@ nothing #hide
 ## Model object
 
 The "IBM" (Individual Based Model) schema needs the type parameter `String` because it defines a
-single attribute, that giving names to the categorical set of states.
+single attribute, that giving names to the categorical set of states. Because age is discretized into
+bins to match the survey data used to parameterize the contact matrix, the attribute type is an integer.
 
 ````@example sir-age
 SIR = AgeIBM{String, Int64}()
@@ -124,7 +125,7 @@ nothing #hide
 ## Processes
 
 The force of infection on a person in age class `i` is computed according to:
-`` \\lambda_{i} = \\beta \\sum\\limits_{j} C_{i,j} \\left( \\frac{I_{j}}{N_{j}} \\right) ``
+`` \lambda_{i} = \beta \sum\limits_{j} C_{i,j} \left( \frac{I_{j}}{N_{j}} \right) ``
 We use a helper function `inf_age_sizes` to calculate the infectious population sizes ``I_{j}``.
 
 ````@example sir-age

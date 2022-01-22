@@ -42,7 +42,7 @@ a general class of individual based models relevant to epidemiology, ecology, an
 
 ````@example sir-scheduling
 N = 1000
-I0 = 5
+I0 = 8
 S0 = N - I0
 Δt = 0.1
 tmax = 100

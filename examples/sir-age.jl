@@ -27,16 +27,17 @@ end
 @abstract_acset_type AbstractAgeIBM <: AbstractIBM
 @acset_type AgeIBM(TheoryAgeIBM,index = [:state, :state_update, :age]) <: AbstractAgeIBM
 
-# The schema looks like this:
+# The schema looks like this. Note that there is an additional attribute in the schema, for age of each individual.
 
 to_graphviz(TheoryAgeIBM)
 
 # ## Parameters
 
-# To parameterize the model from ``R_{0}`` and ``\\gamma``, we follow the method from ["Social contact patterns and control strategies for influenza in the elderly"](http://www.sherrytowers.com/towers_feng_2012.pdf).
-# where ``R_{0}`` is ``\\beta / \\gamma`` multiplied by the largest eigenvalue of the reciprocal (symmetric) contact matrix.
+# To parameterize the model from ``R_{0}`` and ``\gamma``, we follow the method from ["Social contact patterns and control strategies for influenza in the elderly"](http://www.sherrytowers.com/towers_feng_2012.pdf).
+# where ``R_{0}`` is ``\beta / \gamma`` multiplied by the largest eigenvalue of the reciprocal (symmetric) contact matrix.
 
 # We use the estimated contact matrix for Taiwan from ["Projecting social contact matrices in 152 countries using contact surveys and demographic data"](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1005697).
+# There are 16 age groups, in 5 year bins, up to age 75, at which all remaining persons are included in the last bin.
 
 N = 1000
 I0 = 8
@@ -78,7 +79,7 @@ for i = 1:16
     end
 end
 
-β = R0 * γ / max(eigvals(C)...)
+β = R0 * γ / max(eigvals(C)...);
 
 # The initial states are the same as the other tutorials, 1000 individuals, 8 of whom are intially infected.
 
@@ -89,7 +90,8 @@ state_labels = ["S", "I", "R"];
 # ## Model object
 
 # The "IBM" (Individual Based Model) schema needs the type parameter `String` because it defines a
-# single attribute, that giving names to the categorical set of states.  
+# single attribute, that giving names to the categorical set of states. Because age is discretized into
+# bins to match the survey data used to parameterize the contact matrix, the attribute type is an integer.  
 
 SIR = AgeIBM{String, Int64}()
 initialize_states(SIR, initial_states, state_labels);
@@ -103,7 +105,7 @@ set_subpart!(SIR, 1:N, :age, ages);
 # ## Processes
 
 # The force of infection on a person in age class `i` is computed according to:
-# `` \\lambda_{i} = \\beta \\sum\\limits_{j} C_{i,j} \\left( \\frac{I_{j}}{N_{j}} \\right) ``
+# `` \lambda_{i} = \beta \sum\limits_{j} C_{i,j} \left( \frac{I_{j}}{N_{j}} \right) ``
 # We use a helper function `inf_age_sizes` to calculate the infectious population sizes ``I_{j}``.
 
 function inf_age_sizes(I_ages)
