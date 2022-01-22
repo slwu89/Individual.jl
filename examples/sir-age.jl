@@ -75,7 +75,7 @@ contact = (contact_unnorm + transpose(contact_unnorm) .* ( pop_TW * transpose(1 
 C = contact
 for i = 1:16
     for j = 1:16
-        C[i,j] = contact[i,j]*pop_TW[i]/pop_TW[j]
+        C[i,j] = contact[i,j]*N_ages[i]/N_ages[j]
     end
 end
 
@@ -163,4 +163,5 @@ ever_infected = vcat(incident(SIR, [2, 3], :state)...)
 ever_infected_ages = subpart(SIR, ever_infected, :age)
 ever_infected_ages = [sum(ever_infected_ages .== i) for i = 1:16]
 
-bar(ever_infected_ages, label = false, xlabel = "Age bins", ylabel = "Number")
+bar(pop_TW, label = false, xlabel = "Age bins", ylabel = "Number")
+bar!(ever_infected_ages, label = false)
