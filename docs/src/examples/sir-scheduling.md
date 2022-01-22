@@ -59,6 +59,11 @@ nothing #hide
 
 ## Model object
 
+The "SchedulingIBM" (Individual Based Model with Scheduling) schema needs several type parameters.
+The first is the same as the "IBM" schema, associating a unique name to each categorical state.
+The second is the delay, the number of time steps after which a scheduled event will fire.
+The third is the name for each event. The last is for the listeners associated with each event.
+
 ````@example sir-scheduling
 SIR = SchedulingIBM{String, Int64, String, Vector{Function}}()
 initialize_states(SIR, initial_states, state_labels)
