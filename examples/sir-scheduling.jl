@@ -48,8 +48,13 @@ state_labels = ["S", "I", "R"];
 
 # ## Model object
 
+# The "SchedulingIBM" (Individual Based Model with Scheduling) schema needs several type parameters.
+# The first is the same as the "IBM" schema, associating a unique name to each categorical state.
+# The second is the delay, the number of time steps after which a scheduled event will fire.
+# The third is the name for each event. The last is for the listeners associated with each event.
+
 SIR = SchedulingIBM{String, Int64, String, Vector{Function}}()
-initialize_states(SIR, initial_states, state_labels)
+initialize_states(SIR, initial_states, state_labels);
 
 # ## Processes
 
@@ -89,7 +94,7 @@ function recovery_listener(target, t::Int)
     queue_state_update(SIR, target, "R")
 end
 
-add_event(SIR, "Recovery", recovery_listener)
+add_event(SIR, "Recovery", recovery_listener);
 
 # ## Simulation
 

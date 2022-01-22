@@ -49,8 +49,11 @@ state_labels = ["S", "I", "R"];
 
 # ## Model object
 
+# The "IBM" (Individual Based Model) schema needs the type parameter `String` because it defines a
+# single attribute, that giving names to the categorical set of states.  
+
 SIR = IBM{String}()
-initialize_states(SIR, initial_states, state_labels)
+initialize_states(SIR, initial_states, state_labels);
 
 # ## Processes
 

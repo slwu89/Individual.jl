@@ -92,9 +92,9 @@ end
     @test subpart(SIR, :state) == indexin(new_state, state_labels)
     @test subpart(SIR, :state_update) == zeros(Int64, length(initial_states))
 
+    queue_state_update(SIR, 1:length(initial_states), "I")
     reset_states(SIR, initial_states)
     @test subpart(SIR, :state) == indexin(initial_states, state_labels)
-
-    # test this one zeros out state_update too
+    @test subpart(SIR, :state_update) == zeros(Int64, length(initial_states))
 
 end
