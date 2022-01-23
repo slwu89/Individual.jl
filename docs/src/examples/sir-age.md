@@ -35,7 +35,7 @@ end
 @acset_type AgeIBM(TheoryAgeIBM,index = [:state, :state_update, :age]) <: AbstractAgeIBM
 ````
 
-The schema looks like this:
+The schema looks like this. Note that there is an additional attribute in the schema, for age of each individual.
 
 ````@example sir-age
 to_graphviz(TheoryAgeIBM)
@@ -44,9 +44,17 @@ to_graphviz(TheoryAgeIBM)
 ## Parameters
 
 To parameterize the model from ``R_{0}`` and ``\gamma``, we follow the method from ["Social contact patterns and control strategies for influenza in the elderly"](http://www.sherrytowers.com/towers_feng_2012.pdf).
-where ``R_{0}`` is ``\beta / \gamma`` multiplied by the largest eigenvalue of the reciprocal (symmetric) contact matrix.
+where ``R_{0}`` is ``\beta / \gamma`` multiplied by the largest eigenvalue of the reciprocal (symmetric) contact matrix. Note that the
+interpretation of ``\beta`` is slightly different in the age-structured model; here it is only the probability of infection given infectious contact,
+in the other examples it was the rate of contact multiplied by the probability of infection given infectious contact.
 
-We use the estimated contact matrix for Taiwan from ["Projecting social contact matrices in 152 countries using contact surveys and demographic data"](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1005697).
+We use the estimated contact matrix for Taiwan from ["Projecting social contact matrices in 152 countries using contact surveys and demographic data"](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1005697), given in `contact_unnorm`.
+There are 16 age groups, in 5 year bins, up to age 75, at which all remaining persons are included in the last bin.
+Because the contact matrix is directly estimated from survey data, it is not reciprocal (i.e. the number of contacts sent from
+age group ``i`` to ``j`` must equal the number from ``j`` to ``i``). We use a simple pairwise correction to generate a reciprocal contact matrix.
+For more information on reciprocity in parameterizing contact matrices, please see the article ["Projecting social contact matrices to different demographic structures"](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1006638).
+
+The vector `pop_TW_actual` gives the census population in 16 bins, which we scale to our population `N`.
 
 ````@example sir-age
 N = 1000
@@ -57,6 +65,11 @@ tmax = 100
 steps = Int(tmax/Δt)
 γ = 1/10 # recovery rate
 R0 = 2.5
+
+pop_TW_actual = [1011137, 1041749, 975803, 1213008, 1502279, 1618075, 1621625, 1926961, 2032452, 1755391, 1806638, 1852580, 1684376, 1416638, 903130, 1454933]
+pop_TW = N * (pop_TW_actual / sum(pop_TW_actual))
+pop_TW = Int.(round.(pop_TW))
+N_ages = Float64.(pop_TW)
 
 contact_unnorm = [1.13133995414878	0.557101193757009	0.277403588569526	0.166283484217312	0.243637116538954	0.501429856885401	0.773456505042611	0.664734678057495	0.373030323264845	0.207403718009079	0.219768245286902	0.183713318566528	0.100598824431586	0.0723635363224441	0.0451987854057666	0.0264190015627899
 0.522116359073187	5.13993582380529	0.999881750990576	0.256872404884024	0.152965888814777	0.440037571740546	0.81718457664922	0.901816339582795	0.776770796127256	0.324978689513501	0.203946781656598	0.170308924697168	0.114410112258284	0.0766043987718478	0.0377257124824009	0.0309979523804595
@@ -75,21 +88,17 @@ contact_unnorm = [1.13133995414878	0.557101193757009	0.277403588569526	0.1662834
 0.0963863876721027	0.282393513167451	0.295599962015119	0.30895124164141	0.1384465024105	0.257953175229946	0.27963826844241	0.436956466193058	0.509042820432503	0.403187215044375	0.316140357668137	0.277393058839257	0.385660305905714	0.370945733661385	0.606083091791185	0.185944796718132
 0.188903590501605	0.259894019899239	0.37803587788717	0.31873977192663	0.125868047138266	0.160125548829692	0.269195296463481	0.305611946209338	0.348244256184042	0.390220623327373	0.393237304756271	0.240097073151863	0.144076910885202	0.19701354194507	0.184345002762545	0.325239463933643];
 
-pop_TW_actual = [1011137, 1041749, 975803, 1213008, 1502279, 1618075, 1621625, 1926961, 2032452, 1755391, 1806638, 1852580, 1684376, 1416638, 903130, 1454933]
-pop_TW = N * (pop_TW_actual / sum(pop_TW_actual))
-pop_TW = Int.(round.(pop_TW))
-N_ages = Float64.(pop_TW)
-
 contact = (contact_unnorm + transpose(contact_unnorm) .* ( pop_TW * transpose(1 ./ pop_TW))) ./ 2
 
 C = contact
 for i = 1:16
     for j = 1:16
-        C[i,j] = contact[i,j]*pop_TW[i]/pop_TW[j]
+        C[i,j] = contact[i,j]*N_ages[i]/N_ages[j]
     end
 end
 
-β = R0 * γ / max(eigvals(C)...)
+β = R0 * γ / max(eigvals(C)...);
+nothing #hide
 ````
 
 The initial states are the same as the other tutorials, 1000 individuals, 8 of whom are intially infected.
@@ -108,7 +117,7 @@ single attribute, that giving names to the categorical set of states. Because ag
 bins to match the survey data used to parameterize the contact matrix, the attribute type is an integer.
 
 ````@example sir-age
-SIR = AgeIBM{String, Int64}()
+const SIR = AgeIBM{String, Int64}()
 initialize_states(SIR, initial_states, state_labels);
 nothing #hide
 ````
@@ -124,19 +133,21 @@ nothing #hide
 
 ## Processes
 
-The force of infection on a person in age class `i` is computed according to:
-`` \lambda_{i} = \beta \sum\limits_{j} C_{i,j} \left( \frac{I_{j}}{N_{j}} \right) ``
-We use a helper function `inf_age_sizes` to calculate the infectious population sizes ``I_{j}``.
+The force of infection on a person in age class ``i`` is computed according to:
+```math
+ \lambda_{i} = \beta \sum\limits_{j} C_{i,j} \left( \frac{I_{j}}{N_{j}} \right)
+```
+We use a helper function `tabulate_ages` to calculate the infectious population sizes ``I_{j}``.
 
 ````@example sir-age
-function inf_age_sizes(I_ages)
-    [Float64(sum(I_ages .== i)) for i = 1:16]
+function tabulate_ages(ages_vec)
+    [Float64(sum(ages_vec .== i)) for i = 1:16]
 end
 
 function infection_process(t::Int)
     I = get_index_state(SIR, "I")
     I_ages = subpart(SIR, I, :age)
-    I_ages = inf_age_sizes(I_ages)
+    I_ages = tabulate_ages(I_ages)
 
     λ = β * sum(C * diagm(I_ages ./ N_ages), dims = 2)
 
@@ -183,13 +194,14 @@ plot(
 )
 ````
 
-We can also plot the size of the epidemic in each age bin.
+We can also plot the size of the epidemic in each age bin, using a stacked bar chart.
 
 ````@example sir-age
 ever_infected = vcat(incident(SIR, [2, 3], :state)...)
 ever_infected_ages = subpart(SIR, ever_infected, :age)
 ever_infected_ages = [sum(ever_infected_ages .== i) for i = 1:16]
 
-bar(ever_infected_ages, label = false, xlabel = "Age bins", ylabel = "Number")
+bar(pop_TW, label = false, xlabel = "Age bins", ylabel = "Number")
+bar!(ever_infected_ages, label = false)
 ````
 

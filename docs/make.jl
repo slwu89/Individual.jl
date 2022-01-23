@@ -35,7 +35,6 @@ makedocs(
 )
 
 deploydocs(
-  devbranch = "main",
   repo = "github.com/slwu89/individual.jl.git",
   branch = "gh-pages"
 )

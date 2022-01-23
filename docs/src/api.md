@@ -39,7 +39,7 @@ individual.schema_events.event_process
 Methods for sampling random variates commonly used in IBMs.
 
 ```@docs
-individual.sampling.delay_sample
+individual.sampling.delay_geom_sample
 individual.sampling.bernoulli_sample
 individual.sampling.choose
 ```

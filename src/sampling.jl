@@ -2,7 +2,7 @@
 """
 module sampling
 
-export bernoulli_sample, choose, delay_sample
+export bernoulli_sample, choose, delay_geom_sample
 
 using Distributions: Exponential, Geometric, cdf
 using Random: randsubseq
@@ -13,16 +13,18 @@ function rate_to_prob(x::AbstractFloat)
     cdf(Exponential(), x)
 end
 
-""" delay_sample(n::Integer, rate::AbstractFloat, dt::AbstractFloat)
+""" delay_geom_sample(n::Integer, rate::AbstractFloat, dt::AbstractFloat)
 
-Sample time steps until an event fires given a `rate` and `dt`.
+Sample time steps until an event fires given a `rate` and `dt` where the waiting time
+follows a Geometric distribution. The minimum delay is `1`, otherwise there could be
+"instantaneous" events, which are better (more efficiently) simulated as _processes_.
 """
-function delay_sample(n::Integer, rate::AbstractFloat, dt::AbstractFloat)
+function delay_geom_sample(n::Integer, rate::AbstractFloat, dt::AbstractFloat)
     prob = rate_to_prob(rate * dt)
     rand(Geometric(prob), n) .+ 1
 end
 
-function delay_sample(n::Integer, rate::AbstractVector{T}, dt::AbstractFloat) where {T <: AbstractFloat}
+function delay_geom_sample(n::Integer, rate::AbstractVector{T}, dt::AbstractFloat) where {T <: AbstractFloat}
     n == length(rate) || throw(ArgumentError("number of draws must be equal to the length of 'rate'"))
     out = Vector{Int64}(undef, n)
     for i = 1:n

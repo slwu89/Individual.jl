@@ -33,6 +33,8 @@ may queue state updates, and schedule or cancel other events.
 
 The set of scheduled (queued) events is also a set `Scheduled`, with morphisms into the set of events and persons, and a delay `Attr`.
 For each queued event these tell us which event will occur, who it will happen to, and after how many timesteps it (the event listener) should fire.
+This event scheduling mechanism allows events which occur after a non-Geometric (i.e. non-Markovian) delay, such as fixed delays
+or any other distribution.
 
 If we had additional combinatorial data describing each person (e.g. discrete age bin for each person), we could make another set and a morphism from people to that set.
 Additional atomic data for each person (e.g. neutralizing antibody titre) would be an `Attr` of people. In this way we can simulate
@@ -97,7 +99,7 @@ function recovery_process(t::Int)
     to_schedule = setdiff(I, already_scheduled)
 
     if length(to_schedule) > 0
-        rec_times = delay_sample(length(to_schedule), γ, Δt)
+        rec_times = delay_geom_sample(length(to_schedule), γ, Δt)
         schedule_event(SIR, to_schedule, rec_times, "Recovery")
     end
 end
