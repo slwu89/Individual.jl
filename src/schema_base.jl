@@ -5,7 +5,8 @@ module schema_base
 
 export TheoryIBM, AbstractIBM, IBM,
     npeople, nstate, statelabel, get_index_state,
-    queue_state_update, apply_state_updates, output_states,
+    queue_state_update, apply_state_updates, 
+    render_states,
     initialize_states, reset_states
 
 using Catlab
@@ -91,12 +92,20 @@ function apply_state_updates(model::AbstractIBM)
     set_subpart!(model, :state_update, 0)
 end
 
-""" output_states(t::Int, model::AbstractIBM)
+""" render_states(model::AbstractIBM, steps::Integer)
 
-    Return a vector counting the number of persons in each state.
+    Return a tuple whose first element is a matrix containing counts of
+    states (columns) by time step (rows), and whose second element is a _process_
+    function which can be used in the simulation loop.
 """
-function output_states(t::Int, model::AbstractIBM)
-    [length(incident(model, i, :state)) for i = parts(model, :State)]
+function render_states(model::AbstractIBM, steps::Integer)
+    out = Array{Int64}(undef, steps, nstate(model))
+
+    output_states(t::Int) = begin
+        out[t, :] = [length(incident(model, i, :state)) for i = parts(model, :State)]
+    end
+
+    return (out, output_states)
 end
 
 """ initialize_states(model::AbstractIBM, initial_states, state_labels::Vector{String})

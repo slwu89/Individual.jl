@@ -113,7 +113,7 @@ set_subpart!(SIR, 1:N, :age, ages);
 
 # The force of infection on a person in age class ``i`` is computed according to:
 # ```math 
-#  \lambda_{i} = \beta \sum\limits_{j} C_{i,j} \left( \frac{I_{j}}{N_{j}} \right) 
+#  \lambda_{i} = \beta \sum\limits_{j} C_{ij} \left( \frac{I_{j}}{N_{j}} \right) 
 # ```
 # We use a helper function `tabulate_ages` to calculate the infectious population sizes ``I_{j}``.
 
@@ -147,20 +147,21 @@ end
 
 # ## Simulation
 
-# We draw a trajectory and plot the results.
+# We use `render_process` to create a rendering (output) process and 
+# a matrix giving state counts by time step. Then we draw a trajectory and plot the results.
 
-out = Array{Int64}(undef, steps, 3)
+state_out, render_process = render_states(SIR, steps)
 
 for t = 1:steps
     infection_process(t)
     recovery_process(t)
-    out[t, :] = output_states(t, SIR)
+    render_process(t)
     apply_state_updates(SIR)
 end
 
 plot(
     (1:steps) * Δt,
-    out,
+    state_out,
     label=["S" "I" "R"],
     xlabel="Time",
     ylabel="Number"
