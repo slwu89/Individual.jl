@@ -30,7 +30,8 @@ makedocs(
         "examples/sir-scheduling.md",
         "examples/sir-age.md"
       ],
-    "Library Reference" => "api.md"
+    "Library Reference" => "api.md",
+    "Contributing" => "contributing.md"
   ]
 )
 
