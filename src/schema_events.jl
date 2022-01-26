@@ -45,8 +45,9 @@ end
 """
 @abstract_acset_type AbstractSchedulingIBM <: AbstractIBM
 
-""" A concrete ACSet for an individual-based model inheriting from `AbstractSchedulingIBM`
-    which allows for events to be scheduled for persons.
+""" 
+A concrete ACSet for an individual-based model inheriting from `AbstractSchedulingIBM`
+which allows for events to be scheduled for persons.
 """
 @acset_type SchedulingIBM(TheorySchedulingIBM, index=[:state, :state_update, :scheduled_to_event, :scheduled_to_person]) <: AbstractSchedulingIBM
 
