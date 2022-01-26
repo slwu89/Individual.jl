@@ -7,7 +7,8 @@ module schema_events
 
 export TheorySchedulingIBM, AbstractSchedulingIBM, SchedulingIBM,
     add_event, schedule_event, get_scheduled, clear_schedule,
-    event_tick, event_process
+    event_tick, event_process,
+    simulation_loop
 
 using Catlab
 using Catlab.CategoricalAlgebra
@@ -49,9 +50,10 @@ end
 """
 @acset_type SchedulingIBM(TheorySchedulingIBM, index=[:state, :state_update, :scheduled_to_event, :scheduled_to_person]) <: AbstractSchedulingIBM
 
-""" add_event(model::AbstractSchedulingIBM, label::String, listeners...)
+""" 
+    add_event(model::AbstractSchedulingIBM, label::String, listeners...)
 
-    Add an event to the model, with name 'label',
+Add an event to the model, with name 'label',
 """
 function add_event(model::AbstractSchedulingIBM, label::String, listeners...)
     !(label in subpart(model, :eventlabel)) || throw(ArgumentError("event with name 'label' already assigned in model"))
@@ -62,28 +64,31 @@ function add_event(model::AbstractSchedulingIBM, label::String, listeners...)
     add_parts!(model, :Event, 1, eventlabel = label, eventlistener = [listener_vec]);
 end
 
-""" schedule_event(model::AbstractSchedulingIBM, target, delay, event)
+""" 
+    schedule_event(model::AbstractSchedulingIBM, target, delay, event)
 
-    Schedule a set of persons in `target` for the `event` after some `delay`. Note that `event` should correspond to an element
-    in the set `EventLabel` in your model.
+Schedule a set of persons in `target` for the `event` after some `delay`. Note that `event` should correspond to an element
+in the set `EventLabel` in your model.
 """
 function schedule_event(model::AbstractSchedulingIBM, target, delay, event)
     add_parts!(model, :Scheduled, length(target), scheduled_to_person = target, delay = delay, scheduled_to_event = incident(model, event, :eventlabel))
 end
 
-""" get_scheduled(model::AbstractSchedulingIBM, event)
+""" 
+    get_scheduled(model::AbstractSchedulingIBM, event)
 
-    Get the set of persons scheduled for `event`. Note that `event` should correspond to an element
-        in the set `EventLabel` in your model.
+Get the set of persons scheduled for `event`. Note that `event` should correspond to an element
+in the set `EventLabel` in your model.
 """
 function get_scheduled(model::AbstractSchedulingIBM, event)
     model[:scheduled_to_person][incident(model, event, [:scheduled_to_event, :eventlabel])]
 end
 
-""" clear_schedule(model::AbstractSchedulingIBM, target)
+""" 
+    clear_schedule(model::AbstractSchedulingIBM, target)
 
-    Clear the persons in `target` from any events they are scheduled for.
-    If 'target' is not specified, clear all scheduled events.
+Clear the persons in `target` from any events they are scheduled for.
+If 'target' is not specified, clear all scheduled events.
 """
 function clear_schedule(model::AbstractSchedulingIBM, target)
     rem_parts!(model, :Scheduled, incident(model, target, [:scheduled_to_person]))
@@ -93,17 +98,19 @@ function clear_schedule(model::AbstractSchedulingIBM)
     rem_parts!(model, :Scheduled, parts(model, :Scheduled))
 end
 
-""" event_tick(model::AbstractSchedulingIBM)
+""" 
+    event_tick(model::AbstractSchedulingIBM)
 
-    Reduce all delays by 1, called at the end of a time step.
+Reduce all delays by 1, called at the end of a time step.
 """
 function event_tick(model::AbstractSchedulingIBM)
     subpart(model, :delay) .-= 1
 end
 
-""" event_process(model::AbstractSchedulingIBM, t::Int)
+""" 
+    event_process(model::AbstractSchedulingIBM, t::Int)
 
-    Process events which are ready to fire.
+Process events which are ready to fire.
 """
 function event_process(model::AbstractSchedulingIBM, t::Int)
 # get every event ready to fire
@@ -124,5 +131,26 @@ ready_to_fire = incident(model, 0, :delay)
         rem_parts!(model, :Scheduled, ready_to_fire)
     end
 end
+
+""" 
+    simulation_loop(model::AbstractSchedulingIBM, processes::Union{Function, AbstractVector{Function}}, steps::Integer)
+
+A simple predefined simulation loop for individual based models with event scheduling. Processes are called first,
+followed by event listeners, and finally state updates.
+"""
+function simulation_loop(model::AbstractSchedulingIBM, processes::Union{Function, AbstractVector{Function}}, steps::Integer)
+    if processes isa Function
+        processes = [processes]
+    end
+    for t = 1:steps
+        for p = processes
+            p(t)
+        end
+        event_process(model, t)
+        event_tick(model)
+        apply_state_updates(model)
+    end
+end
+
 
 end

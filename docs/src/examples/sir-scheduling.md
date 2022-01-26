@@ -123,18 +123,12 @@ nothing #hide
 
 We use `render_process` to create a rendering (output) process and
 a matrix giving state counts by time step. Then we draw a trajectory and plot the results.
+We need to use the `simulation_loop` from the module for models with event scheduling.
 
 ````@example sir-scheduling
 state_out, render_process = render_states(SIR, steps)
 
-for t = 1:steps
-    infection_process(t)
-    recovery_process(t)
-    render_process(t)
-    event_process(SIR, t)
-    event_tick(SIR)
-    apply_state_updates(SIR)
-end
+schema_events.simulation_loop(SIR, [infection_process, recovery_process, render_process], steps)
 
 plot(
     (1:steps) * Δt,

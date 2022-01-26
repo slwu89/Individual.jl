@@ -102,17 +102,16 @@ end
 ## Simulation
 
 We use `render_process` to create a rendering (output) process and
-a matrix giving state counts by time step. Then we draw a trajectory and plot the results.
+a matrix giving state counts by time step.
+
+Then we draw a trajectory using `simulation_loop` and plot the results.
+Please note that `simulation_loop` is a simple wrapper around the correct updating order
+and that a user can always write a simple for loop to update the model.
 
 ````@example sir-basic
 state_out, render_process = render_states(SIR, steps)
 
-for t = 1:steps
-    infection_process(t)
-    recovery_process(t)
-    render_process(t)
-    apply_state_updates(SIR)
-end
+simulation_loop(SIR, [infection_process, recovery_process, render_process], steps)
 
 plot(
     (1:steps) * Δt,

@@ -135,7 +135,7 @@ nothing #hide
 
 The force of infection on a person in age class ``i`` is computed according to:
 ```math
- \lambda_{i} = \beta \sum\limits_{j} C_{i,j} \left( \frac{I_{j}}{N_{j}} \right)
+ \lambda_{i} = \beta \sum\limits_{j} C_{ij} \left( \frac{I_{j}}{N_{j}} \right)
 ```
 We use a helper function `tabulate_ages` to calculate the infectious population sizes ``I_{j}``.
 
@@ -179,12 +179,7 @@ a matrix giving state counts by time step. Then we draw a trajectory and plot th
 ````@example sir-age
 state_out, render_process = render_states(SIR, steps)
 
-for t = 1:steps
-    infection_process(t)
-    recovery_process(t)
-    render_process(t)
-    apply_state_updates(SIR)
-end
+simulation_loop(SIR, [infection_process, recovery_process, render_process], steps)
 
 plot(
     (1:steps) * Δt,

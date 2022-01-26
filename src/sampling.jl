@@ -13,7 +13,8 @@ function rate_to_prob(x::AbstractFloat)
     cdf(Exponential(), x)
 end
 
-""" delay_geom_sample(n::Integer, rate::AbstractFloat, dt::AbstractFloat)
+""" 
+    delay_geom_sample(n::Integer, rate::AbstractFloat, dt::AbstractFloat)
 
 Sample time steps until an event fires given a `rate` and `dt` where the waiting time
 follows a Geometric distribution. The minimum delay is `1`, otherwise there could be
@@ -34,7 +35,8 @@ function delay_geom_sample(n::Integer, rate::AbstractVector{T}, dt::AbstractFloa
     return out
 end
 
-""" bernoulli_sample(target::AbstractVector, prob::AbstractFloat)
+""" 
+    bernoulli_sample(target::AbstractVector, prob::AbstractFloat)
 
 Sample without replacement from `target` with success probability `prob`.
 """
@@ -70,7 +72,8 @@ function bernoulli_sample(target::AbstractVector, rate::AbstractFloat, dt::Abstr
     randsubseq(target, rate_to_prob(rate * dt))
 end
 
-""" bernoulli_sample(target::AbstractVector{T}, prob::Vector{R})
+""" 
+    bernoulli_sample(target::AbstractVector{T}, prob::Vector{R})
 
 Sample without replacement from `target` where each element has a unique success probability 
 given in the vector `prob`.
@@ -96,7 +99,8 @@ function bernoulli_sample(target::AbstractVector{T}, prob::Vector{R}) where {T <
     end
 end
 
-""" bernoulli_sample(target::AbstractVector{T}, rate::Vector{R}, dt::AbstractFloat)
+""" 
+    bernoulli_sample(target::AbstractVector{T}, rate::Vector{R}, dt::AbstractFloat)
 
 Sample without replacement from `target` where each element's success probability is calculated
 from ``1 - e^{-\\mathrm{rate} * \\mathrm{dt}}``.
@@ -123,7 +127,9 @@ function bernoulli_sample(target::AbstractVector{T}, rate::Vector{R}, dt::Abstra
 end
 
 
-""" choose(target::T, K::Integer)
+""" 
+    choose(target::T, K::Integer) where {T <: Integer}
+    choose(target::AbstractVector{T}, K::Integer) where {T <: Integer}
 
 Return a vector of size `K` with that number of random elements selected
 without replacement from `target`.

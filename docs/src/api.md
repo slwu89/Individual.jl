@@ -16,6 +16,7 @@ individual.schema_base.apply_state_updates
 individual.schema_base.render_states
 individual.schema_base.initialize_states
 individual.schema_base.reset_states
+individual.schema_base.simulation_loop
 ```
 
 ## Event scheduling schema
@@ -32,6 +33,7 @@ individual.schema_events.get_scheduled
 individual.schema_events.clear_schedule
 individual.schema_events.event_tick
 individual.schema_events.event_process
+individual.schema_events.simulation_loop
 ```
 
 ## Sampling

@@ -152,12 +152,7 @@ end
 
 state_out, render_process = render_states(SIR, steps)
 
-for t = 1:steps
-    infection_process(t)
-    recovery_process(t)
-    render_process(t)
-    apply_state_updates(SIR)
-end
+simulation_loop(SIR, [infection_process, recovery_process, render_process], steps)
 
 plot(
     (1:steps) * Δt,
