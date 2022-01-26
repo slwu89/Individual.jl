@@ -2,6 +2,7 @@
 
 <!-- badges start -->
 [![Documentation](https://github.com/slwu89/individual.jl/actions/workflows/docs.yml/badge.svg?branch=main)](https://slwu89.github.io/individual.jl/dev/)
+[![Tests](https://github.com/slwu89/individual.jl/actions/workflows/tests.yml/badge.svg)](https://github.com/slwu89/individual.jl/actions/workflows/tests.yml)
 <!-- badges end -->
 
 individual.jl is a package which uses [Catlab.jl](https://algebraicjulia.github.io/Catlab.jl/stable/),
