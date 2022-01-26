@@ -30,14 +30,14 @@ using Catlab.Theories
     statelabel::Attr(State, StateLabel)
 end
 
-""" An abstract ACSet for a basic Markov individual-based model inheriting from `AbstractIBM`
-    which allows for events to be scheduled for persons.
+""" An abstract ACSet for a basic Markov individual-based model.
 """
 @abstract_acset_type AbstractIBM
 
-""" A concrete ACSet for a basic Markov individual-based model inheriting from `AbstractIBM`.
+""" 
+A concrete ACSet for a basic Markov individual-based model inheriting from `AbstractIBM`.
 """
-@acset_type IBM(TheoryIBM,index = [:state, :state_update]) <: AbstractIBM
+@acset_type IBM(TheoryIBM, index = [:state, :state_update]) <: AbstractIBM
 
 """ 
     npeople(model::AbstractIBM, states)
