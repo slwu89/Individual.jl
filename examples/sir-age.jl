@@ -96,14 +96,15 @@ state_labels = ["S", "I", "R"];
 
 # ## Model object
 
-# The "IBM" (Individual Based Model) schema needs the type parameter `String` because it defines a
-# single attribute, that giving names to the categorical set of states. Because age is discretized into
-# bins to match the survey data used to parameterize the contact matrix, the attribute type is an integer.  
+# The `AgeIBM` schema we made needs two type parameters.
+# The first `String` is for the set of state labels, inherited from `IBM`.
+# The second is for the age attribute.
+# Because age is discretized into bins to match the survey data used to parameterize the contact matrix, the attribute type is an integer.  
 
 const SIR = AgeIBM{String, Int64}()
 initialize_states(SIR, initial_states, state_labels);
 
-# We need to sample the age bins for each person, such that the population age distribution is right.
+# We need to sample the age bins for each person, such that the sizes of each age bin are correct.
 
 ages = vcat([fill(i, pop_TW[i]) for i in 1:16]...)
 shuffle!(ages)
@@ -148,7 +149,8 @@ end
 # ## Simulation
 
 # We use `render_process` to create a rendering (output) process and 
-# a matrix giving state counts by time step. Then we draw a trajectory and plot the results.
+# a matrix giving state counts by time step.
+# Then we pass the necessary processes to `simulation_loop` to draw a trajectory and plot the results.
 
 state_out, render_process = render_states(SIR, steps)
 
