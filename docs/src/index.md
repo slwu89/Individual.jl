@@ -27,18 +27,7 @@ The simulation loop ensures that models in individual.jl follow a synchronous up
 
 ## Contributing
 
-### Issues
-
-If you find a bug, have a question about how to use a feature that does not have sufficient documentation, or have a suggestion for improvement, please [leave an issue](https://github.com/slwu89/individual.jl/issues) at our GitHub repo.
-
-For bug reports please include:
-
-- individual.jl version
-- Operating system
-- Julia version
-- Steps to recreate
-- Expected behaviour
-- Actual behaviour
+Please see the contribution guide [here](@ref ref_contributing).
 
 ## Acknowledgements
 
