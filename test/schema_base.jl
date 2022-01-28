@@ -77,7 +77,7 @@ end
     SIR = IBM{String}()
     initialize_states(SIR, initial_states, state_labels)
 
-    @test_throws BoundsError queue_state_update(SIR, 1, "X")
+    @test_throws ArgumentError queue_state_update(SIR, 1, "X")
     queue_state_update(SIR, 1, "R")
     @test findfirst(x -> x == 3, subpart(SIR, :state_update)) == 1
 

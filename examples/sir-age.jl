@@ -17,7 +17,10 @@ using Random
 
 # ## Schema
 
-# We need to define a new schema inheriting from `TheoryIBM`.
+# We need to define a new schema inheriting from `TheoryIBM`. Please note that when we use `@acset_type` to define the type
+# for the ACSet data structure for our model, we need to set `:statelabel` as a unique index. This is because the simulation
+# framework assumes that there is a one to one mapping between states and their unique labels. Please look at the type definition
+# for `IBM` and `SchedulingIBM` in the source files to see what indices are expected.
 
 @present TheoryAgeIBM <: TheoryIBM begin
     Age::AttrType
@@ -25,7 +28,7 @@ using Random
 end
 
 @abstract_acset_type AbstractAgeIBM <: AbstractIBM
-@acset_type AgeIBM(TheoryAgeIBM,index = [:state, :state_update, :age]) <: AbstractAgeIBM
+@acset_type AgeIBM(TheoryAgeIBM, index = [:state, :state_update, :age], unique_index = [:statelabel]) <: AbstractAgeIBM
 
 # The schema looks like this. Note that there is an additional attribute in the schema, for age of each individual.
 
