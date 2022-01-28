@@ -1,4 +1,4 @@
-using Documenter, Literate, individual
+using Documenter, Literate, Individual
 
 # Set Literate.jl config if not being compiled on recognized service.
 config = Dict{String,String}()
