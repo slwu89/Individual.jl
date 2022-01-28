@@ -1,15 +1,15 @@
 # # [SIR example with event scheduling](@id sir_scheduling)
 # Sean L. Wu (@slwu89), 2021-1-9
 
-using individual.sampling
-using individual.schema_base
-using individual.schema_events
+using Individual.Sampling
+using Individual.SchemaBase
+using Individual.SchemaEvents
 
 using Catlab.Present, Catlab.CSetDataStructures, Catlab.Theories, Catlab.CategoricalAlgebra, Catlab.Graphics, Catlab.Graphs
 using Plots, GraphViz
 
 # ## Introduction
-# This tutorial shows how to simulate the SIR model using the event scheduling schema available in individual.jl. The stochastic
+# This tutorial shows how to simulate the SIR model using the event scheduling schema available in Individual.jl. The stochastic
 # process being simulated is exactly the same as the basic [Markov SIR model tutorial](@ref sir_basic), and all parameters
 # are identical, so please see that tutorial for reference if needed.
 
@@ -106,7 +106,7 @@ add_event(SIR, "Recovery", recovery_listener);
 
 state_out, render_process = render_states(SIR, steps)
 
-schema_events.simulation_loop(SIR, [infection_process, recovery_process, render_process], steps)
+SchemaEvents.simulation_loop(SIR, [infection_process, recovery_process, render_process], steps)
 
 plot(
     (1:steps) * Δt,

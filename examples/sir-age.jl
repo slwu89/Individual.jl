@@ -1,8 +1,8 @@
 # # [SIR example with age structure](@id sir_age)
 # Sean L. Wu (@slwu89), 2021-1-22
 
-using individual.sampling
-using individual.schema_base
+using Individual.Sampling
+using Individual.SchemaBase
 
 using Catlab.Present, Catlab.CSetDataStructures, Catlab.Theories, Catlab.CategoricalAlgebra, Catlab.Graphics, Catlab.Graphs
 using Plots, GraphViz

@@ -22,9 +22,9 @@ for (root, dirs, files) in walkdir(literate_dir)
 end
 
 makedocs(
-  sitename  = "individual.jl",
+  sitename  = "Individual.jl",
   pages     = [
-    "individual.jl" => "index.md",
+    "Individual.jl" => "index.md",
     "Examples" => Any[
         "examples/sir-basic.md",
         "examples/sir-scheduling.md",
@@ -36,6 +36,6 @@ makedocs(
 )
 
 deploydocs(
-  repo = "github.com/slwu89/individual.jl.git",
+  repo = "github.com/slwu89/Individual.jl.git",
   branch = "gh-pages"
 )

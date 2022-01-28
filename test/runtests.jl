@@ -1,13 +1,13 @@
 using Test
 
-@testset "sampling" begin
-  include("sampling.jl")
+@testset "Sampling" begin
+  include("Sampling.jl")
 end
 
-@testset "schema_base" begin
-  include("schema_base.jl")
+@testset "SchemaBase" begin
+  include("SchemaBase.jl")
 end
 
-@testset "schema_events" begin
-  include("schema_events.jl")
+@testset "SchemaEvents" begin
+  include("SchemaEvents.jl")
 end

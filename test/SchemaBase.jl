@@ -1,4 +1,4 @@
-using individual.schema_base
+using Individual.SchemaBase
 using Catlab.ACSetInterface
 using Test
 
