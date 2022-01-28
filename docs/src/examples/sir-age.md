@@ -23,7 +23,10 @@ age group ``i`` has with persons in age group ``j``.
 
 ## Schema
 
-We need to define a new schema inheriting from `TheoryIBM`.
+We need to define a new schema inheriting from `TheoryIBM`. Please note that when we use `@acset_type` to define the type
+for the ACSet data structure for our model, we need to set `:statelabel` as a unique index. This is because the simulation
+framework assumes that there is a one to one mapping between states and their unique labels. Please look at the type definition
+for `IBM` and `SchedulingIBM` in the source files to see what indices are expected.
 
 ````@example sir-age
 @present TheoryAgeIBM <: TheoryIBM begin
