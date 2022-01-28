@@ -1,14 +1,14 @@
 # [Contributing](@id ref_contributing)
 
-Thank you for taking the time to contribute to individual.jl!
+Thank you for taking the time to contribute to Individual.jl!
 
 ## Issues
 
-If you find a bug, have a question about how to use a feature that does not have sufficient documentation, or have a suggestion for improvement, please leave an [issue](https://github.com/slwu89/individual.jl/issues) at our GitHub repo.
+If you find a bug, have a question about how to use a feature that does not have sufficient documentation, or have a suggestion for improvement, please [leave an issue](https://github.com/slwu89/Individual.jl/issues) at our GitHub repo.
 
 For bug reports please include:
 
- * individual.jl version
+ * Individual.jl version
  * Operating System
  * Julia version
  * Steps to recreate

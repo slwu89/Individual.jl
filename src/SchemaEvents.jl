@@ -3,7 +3,7 @@
     on the subset of persons who were scheduled for that event, which may queue state updates or
     schedule further events. This allows simulation of processes with memory (i.e. non-Markovian models).
 """
-module schema_events
+module SchemaEvents
 
 export TheorySchedulingIBM, AbstractSchedulingIBM, SchedulingIBM,
     add_event, schedule_event, get_scheduled, clear_schedule,
@@ -16,7 +16,7 @@ using Catlab.CategoricalAlgebra.FinSets
 using Catlab.Present
 using Catlab.Theories
 
-using ..schema_base
+using ..SchemaBase
 
 """ A schema for an individual-based model inheriting from `TheoryIBM`
     which allows for events to be scheduled for persons.

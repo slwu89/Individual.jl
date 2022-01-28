@@ -1,7 +1,7 @@
 """ Define a schema and ACSet which can be used as the base for most individual-based epidemiological models.
     Alone, this module allows for simulation of Markov models.
 """
-module schema_base
+module SchemaBase
 
 export TheoryIBM, AbstractIBM, IBM,
     npeople, nstate, statelabel, get_index_state,

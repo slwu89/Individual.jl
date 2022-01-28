@@ -1,4 +1,4 @@
-using individual.sampling
+using Individual.Sampling
 using Test
 
 @testset "delay_geom_sample with scalar rate" begin

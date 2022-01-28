@@ -1,15 +1,15 @@
 # # [Basic SIR example](@id sir_basic)
 # Sean L. Wu (@slwu89), 2021-1-8
 
-using individual.sampling
-using individual.schema_base
+using Individual.Sampling
+using Individual.SchemaBase
 
 using Catlab.Present, Catlab.CSetDataStructures, Catlab.Theories, Catlab.CategoricalAlgebra, Catlab.Graphics, Catlab.Graphs
 using Plots, GraphViz
 
 # ## Introduction
 # The SIR (Susceptible-Infected-Recovered) model is the "hello, world!" model of for infectious disease simulations, 
-# and here we describe how to use the basic schema for Markov models to build it in individual.jl. We only use the
+# and here we describe how to use the basic schema for Markov models to build it in Individual.jl. We only use the
 # base `TheoryIBM` schema, because the model is a Markov chain. This tutorial largely mirrors the SIR model tutorial from
 # the [R package "individual"](https://mrc-ide.github.io/individual/articles/Tutorial.html), which inspired individual.jl.
 

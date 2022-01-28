@@ -1,6 +1,6 @@
 """ Functions for the types of random variate draws often used in individual-based epidemiological models.
 """
-module sampling
+module Sampling
 
 export bernoulli_sample, choose, delay_geom_sample
 

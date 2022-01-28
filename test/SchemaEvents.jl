@@ -1,5 +1,5 @@
-using individual.schema_base
-using individual.schema_events
+using Individual.SchemaBase
+using Individual.SchemaEvents
 using Catlab.ACSetInterface
 using Test
 
