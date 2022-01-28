@@ -32,7 +32,7 @@ We need to define a new schema inheriting from `TheoryIBM`.
 end
 
 @abstract_acset_type AbstractAgeIBM <: AbstractIBM
-@acset_type AgeIBM(TheoryAgeIBM,index = [:state, :state_update, :age]) <: AbstractAgeIBM
+@acset_type AgeIBM(TheoryAgeIBM, index = [:state, :state_update, :age], unique_index = [:statelabel]) <: AbstractAgeIBM
 ````
 
 The schema looks like this. Note that there is an additional attribute in the schema, for age of each individual.
@@ -112,9 +112,10 @@ nothing #hide
 
 ## Model object
 
-The "IBM" (Individual Based Model) schema needs the type parameter `String` because it defines a
-single attribute, that giving names to the categorical set of states. Because age is discretized into
-bins to match the survey data used to parameterize the contact matrix, the attribute type is an integer.
+The `AgeIBM` schema we made needs two type parameters.
+The first `String` is for the set of state labels, inherited from `IBM`.
+The second is for the age attribute.
+Because age is discretized into bins to match the survey data used to parameterize the contact matrix, the attribute type is an integer.
 
 ````@example sir-age
 const SIR = AgeIBM{String, Int64}()
@@ -122,7 +123,7 @@ initialize_states(SIR, initial_states, state_labels);
 nothing #hide
 ````
 
-We need to sample the age bins for each person, such that the population age distribution is right.
+We need to sample the age bins for each person, such that the sizes of each age bin are correct.
 
 ````@example sir-age
 ages = vcat([fill(i, pop_TW[i]) for i in 1:16]...)
@@ -174,7 +175,8 @@ end
 ## Simulation
 
 We use `render_process` to create a rendering (output) process and
-a matrix giving state counts by time step. Then we draw a trajectory and plot the results.
+a matrix giving state counts by time step.
+Then we pass the necessary processes to `simulation_loop` to draw a trajectory and plot the results.
 
 ````@example sir-age
 state_out, render_process = render_states(SIR, steps)

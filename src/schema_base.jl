@@ -37,7 +37,7 @@ end
 """ 
 A concrete ACSet for a basic Markov individual-based model inheriting from `AbstractIBM`.
 """
-@acset_type IBM(TheoryIBM, index = [:state, :state_update]) <: AbstractIBM
+@acset_type IBM(TheoryIBM, index = [:state, :state_update], unique_index = [:statelabel]) <: AbstractIBM
 
 """ 
     npeople(model::AbstractIBM, states)
@@ -80,7 +80,9 @@ end of the time step.
 """
 function queue_state_update(model::AbstractIBM, persons, state)
     if length(persons) > 0
-        set_subpart!(model, persons, :state_update, incident(model, state, :statelabel)[1])
+        state_index = incident(model, state, :statelabel)
+        state_index > 0 || throw(ArgumentError("state $(state) is not is the set of state labels"))
+        set_subpart!(model, persons, :state_update, state_index)
     end
 end
 

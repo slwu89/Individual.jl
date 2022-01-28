@@ -1,10 +1,10 @@
 # [Contributing](@id ref_contributing)
 
-Thank you for taking the time to contribute to **individual.jl**!
+Thank you for taking the time to contribute to individual.jl!
 
 ## Issues
 
-If you find a bug, have a question about how to use a feature that does not have sufficient documentation, or have a suggestion for improvement, please leave an issue at our GitHub repo.
+If you find a bug, have a question about how to use a feature that does not have sufficient documentation, or have a suggestion for improvement, please leave an [issue](https://github.com/slwu89/individual.jl/issues) at our GitHub repo.
 
 For bug reports please include:
 
@@ -24,7 +24,7 @@ We use Git on this project. Which means we use `main`, `dev`, `feat/*`, `bug/*`,
   * `dev`: all pull requests from users should be made to the `dev` branch. This branch is protected from deletion.
   * `feat`: new and significantly enhanced features are made in `feat` branches before being merged with `dev`. After a `feat/*` branch is merged with `dev`, it can be deleted.
   * `bug`: these branches fix bugs, usually after being raised as an issue. After a `bug/*` branch is merged with `dev`, it can be deleted.
-  * `hotfix`: the difference between a `bug/*` and `hotfix/*` branch is `hotfix` is for small quick fixes (misspellings, incorrect arguments, etc.) and are short-lived. After being merged with `dev`, they can be deleted.
+  * `hotfix`: the difference between a `bug/*` and `hotfix/*` branch is `hotfix` is for small quick fixes (misspellings, incorrect arguments, etc), and can be directly merged into `main`. After they are merged, it can be deleted.
 
 We periodically merge `dev` into `main` for release updates.
 
