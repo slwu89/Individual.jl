@@ -25,6 +25,12 @@ Each time step follows a specific order of computation to build consistent model
 
 The simulation loop ensures that models in Individual.jl follow a synchronous updating scheme (i.e. all state is updated simultaneously at the end of a time step).
 
+### Alternatives
+
+Another framework for individual based modeling in Julia is [Agents.jl](https://github.com/JuliaDynamics/Agents.jl).
+You might prefer to use that package if your model assumes a continuous space, or a lattice grid, and also if you
+want to use the advanced visualization and app-generation tools in that package. You might prefer to use Individual.jl if your model considers space as a network or metapopulation (if it explicitly includes space at all), or if you would like to take advantage of the ACSet data type for your simulations.
+
 ## Contributing
 
 Please see the contribution guide [here](@ref ref_contributing).
@@ -33,4 +39,4 @@ Please see the contribution guide [here](@ref ref_contributing).
 
 Individual.jl is written and maintained by Sean L. Wu [(@slwu89)](https://github.com/slwu89).
 
-We acknowledge help and advice from [Sophie Libkind](http://slibkind.github.io/) and [Evan Patterson](https://www.epatters.org/) regarding use of Catlab's ACSets. 
+We acknowledge help and advice from [Sophie Libkind](http://slibkind.github.io/) and [Evan Patterson](https://www.epatters.org/) regarding use of Catlab's ACSets.
