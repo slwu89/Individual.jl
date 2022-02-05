@@ -6,7 +6,7 @@ using Individual.SchemaBase
 using Individual.SchemaEvents
 
 using Catlab.Present, Catlab.CSetDataStructures, Catlab.Theories, Catlab.CategoricalAlgebra, Catlab.Graphics, Catlab.Graphs
-using Plots, GraphViz
+using Plots
 
 # ## Introduction
 # This tutorial shows how to simulate the SIR model using the event scheduling schema available in Individual.jl. The stochastic

@@ -16,6 +16,10 @@ using Catlab.CategoricalAlgebra.FinSets
 using Catlab.Present
 using Catlab.Theories
 
+using Catlab.CSetDataStructures: StructACSet
+using Catlab.Theories: FreeSchema, SchemaDesc, SchemaDescType, CSetSchemaDescType,
+SchemaDescTypeType, ob_num, codom_num, attr, attrtype
+
 """ ACSet definition for a basic individual-based model
     See Catlab.jl documentation for description of the `@present` syntax.
 """
@@ -184,5 +188,23 @@ function simulation_loop(model::AbstractIBM, processes::Union{Function, Abstract
         apply_state_updates(model)
     end
 end
+
+
+# unexported tests
+
+test_get_attrs(acs::StructACSet) = _test_get_attrs(acs)
+
+function test_get_attrs_body(s::SchemaDesc)
+    homs = s.homs
+    homs = map((x) -> String(x), homs)
+    quote
+        $(homs)
+    end
+end
+
+@generated function _test_get_attrs(acs::StructACSet{S, Ts, idxed}) where {S, Ts, idxed}
+    test_get_attrs_body(SchemaDesc(S))
+end
+
 
 end
