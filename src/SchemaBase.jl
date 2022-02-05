@@ -208,7 +208,7 @@ end
 # update state (Ob)
 test_update_Ob(acs::StructACSet) = _test_update_Ob(acs)
 
-function test_update_Ob_body(s::SchemaDesc)
+function test_update_Ob_body(s::SchemaDesc, acs)
     homs = s.homs
     homs = map((x)->String(x), homs)
     homs = split.(homs, "_")
@@ -231,7 +231,9 @@ function test_update_Ob_body(s::SchemaDesc)
                 end
             end
         end
+        return -1
     end
+    state_ix = state_ix[state_ix .!= -1]
     # the codomains of the updates (i.e. what are they actually updating)
     codomains = map(update_ix) do x
         s.codoms[s.homs[x]]
@@ -240,25 +242,82 @@ function test_update_Ob_body(s::SchemaDesc)
     update_homs = s.homs[update_ix]
     length(update_ix) == length(state_ix) == length(codomains) || throw(AssertionError("some update homs do not have corresponding membership homs, please check your schema"))
     quote
-        println("running state updates")
-        for i in 1:$(length(codomains))
-            println("i: $(i)")
+        # println("running state updates")
+        for i in 1:length($(codomains))
+            # println("i: $(i)")
             # update the i-th Ob which specifies it
-            for state in parts(s, $(codomains[i]))
+            for state in parts(acs, $(codomains)[i])
                 println("state: $(state)")
-                people_to_update = incident(s, state, $(update_homs[i]))
+                people_to_update = incident(acs, state, $(update_homs)[i])
                 if length(people_to_update) > 0
-                    set_subpart!(s, people_to_update, $(state_homs[i]), state)
+                    set_subpart!(acs, people_to_update, $(state_homs)[i], state)
                 end
             end
-            set_subpart!(s, $(update_homs[i]), 0)
+            set_subpart!(acs, $(update_homs)[i], 0)
         end
     end
 end
 
 @generated function _test_update_Ob(acs::StructACSet{S, Ts, idxed}) where {S, Ts, idxed}
-    test_update_Ob_body(SchemaDesc(S))
+    test_update_Ob_body(SchemaDesc(S), acs)
 end
+
+
+
+
+# test_update_Ob(acs::StructACSet) = _test_update_Ob(acs)
+
+# function test_update_Ob_body(s::SchemaDesc)
+#     homs = s.homs
+#     homs = map((x)->String(x), homs)
+#     homs = split.(homs, "_")
+#     # all the homs that end in 'update'
+#     update_ix = findall(homs) do x
+#         if length(x) < 2
+#             return false
+#         else
+#             return x[end] == "update"
+#         end
+#     end
+#     # all the homs which correspond to their updates
+#     state_ix = map(update_ix) do x
+#         for i = 1:length(homs)
+#             if i == x
+#                 continue
+#             else
+#                 if homs[x][1:end-1] == homs[i]
+#                     return i
+#                 end
+#             end
+#         end
+#     end
+#     # the codomains of the updates (i.e. what are they actually updating)
+#     codomains = map(update_ix) do x
+#         s.codoms[s.homs[x]]
+#     end
+#     state_homs = s.homs[state_ix]
+#     update_homs = s.homs[update_ix]
+#     length(update_ix) == length(state_ix) == length(codomains) || throw(AssertionError("some update homs do not have corresponding membership homs, please check your schema"))
+#     quote
+#         # println("running state updates")
+#         for i in 1:length($(codomains))
+#             # println("i: $(i)")
+#             # update the i-th Ob which specifies it
+#             for state in parts($(s), $(codomains)[i])
+#                 println("state: $(state)")
+#                 people_to_update = incident($(s), state, $(update_homs)[i])
+#                 if length(people_to_update) > 0
+#                     set_subpart!($(s), people_to_update, $(state_homs)[i], state)
+#                 end
+#             end
+#             set_subpart!($(s), $(update_homs)[i], 0)
+#         end
+#     end
+# end
+
+# @generated function _test_update_Ob(acs::StructACSet{S, Ts, idxed}) where {S, Ts, idxed}
+#     test_update_Ob_body(SchemaDesc(S))
+# end
 
 # update state (Attr)
 

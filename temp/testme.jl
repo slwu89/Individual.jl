@@ -3,6 +3,7 @@ using Individual.SchemaBase
 
 using Catlab.Present, Catlab.CSetDataStructures, Catlab.Theories, Catlab.CategoricalAlgebra, Catlab.Graphics, Catlab.Graphs
 using Plots
+using Random
 
 N = 1000
 I0 = 8
