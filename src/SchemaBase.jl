@@ -206,9 +206,9 @@ end
 
 
 # update state (Ob)
-test_get_attrs(acs::StructACSet) = _test_get_attrs(acs)
+test_update_Ob(acs::StructACSet) = _test_update_Ob(acs)
 
-function test_get_attrs_body(s::SchemaDesc)
+function test_update_Ob_body(s::SchemaDesc)
     homs = s.homs
     homs = map((x)->String(x), homs)
     homs = split.(homs, "_")
@@ -240,9 +240,12 @@ function test_get_attrs_body(s::SchemaDesc)
     update_homs = s.homs[update_ix]
     length(update_ix) == length(state_ix) == length(codomains) || throw(AssertionError("some update homs do not have corresponding membership homs, please check your schema"))
     quote
+        println("running state updates")
         for i in 1:$(length(codomains))
+            println("i: $(i)")
             # update the i-th Ob which specifies it
             for state in parts(s, $(codomains[i]))
+                println("state: $(state)")
                 people_to_update = incident(s, state, $(update_homs[i]))
                 if length(people_to_update) > 0
                     set_subpart!(s, people_to_update, $(state_homs[i]), state)
@@ -253,8 +256,8 @@ function test_get_attrs_body(s::SchemaDesc)
     end
 end
 
-@generated function _test_get_attrs(acs::StructACSet{S, Ts, idxed}) where {S, Ts, idxed}
-    test_get_attrs_body(SchemaDesc(S))
+@generated function _test_update_Ob(acs::StructACSet{S, Ts, idxed}) where {S, Ts, idxed}
+    test_update_Ob_body(SchemaDesc(S))
 end
 
 # update state (Attr)
