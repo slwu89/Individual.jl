@@ -1,6 +1,6 @@
 ## Introduction
 
-Individual.jl is a Julia package for specifying and simulating individual based models (IBMs), using applied category theory. The package relies on
+Individual.jl is a Julia package for specifying and simulating individual-based models (IBMs), using applied category theory. The package relies on
 [Catlab.jl](https://algebraicjulia.github.io/Catlab.jl/stable/), especially attributed C-Sets to
 create schemas which can represent a broad class of IBMs useful for epidemiology, ecology, and the computational
 social sciences. It is inspired by the R software [individual](https://mrc-ide.github.io/individual/).
@@ -11,7 +11,7 @@ For tutorials on how to use the software, see the examples:
 
 - start by reading a basic SIR model tutorial [here](@ref sir_basic)
 - read about using event scheduling for events which occur after a non-Geometric delay with an SIR model using event scheduling [here](@ref sir_scheduling)
-- learn how to extend the types in indiviudal.jl with additional attributes, via a SIR model with age-structure [here](@ref sir_age)
+- learn how to extend the types in Individual.jl with additional attributes, via a SIR model with age-structure [here](@ref sir_age)
 
 The [API reference](@ref ref_api) contains information about objects and functions available to users.
 
@@ -27,7 +27,7 @@ The simulation loop ensures that models in Individual.jl follow a synchronous up
 
 ### Alternatives
 
-Another framework for individual based modeling in Julia is [Agents.jl](https://github.com/JuliaDynamics/Agents.jl).
+Another framework for individual-based modeling in Julia is [Agents.jl](https://github.com/JuliaDynamics/Agents.jl).
 You might prefer to use that package if your model assumes a continuous space, or a lattice grid, and also if you
 want to use the advanced visualization and app-generation tools in that package. You might prefer to use Individual.jl if your model considers space as a network or metapopulation (if it explicitly includes space at all), or if you would like to take advantage of the ACSet data type for your simulations.
 

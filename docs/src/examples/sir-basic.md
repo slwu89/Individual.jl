@@ -14,10 +14,10 @@ using Plots
 ````
 
 ## Introduction
-The SIR (Susceptible-Infected-Recovered) model is the "hello, world!" model of for infectious disease simulations,
+The SIR (Susceptible-Infected-Recovered) model is the "hello, world!" model for infectious disease simulations,
 and here we describe how to use the basic schema for Markov models to build it in Individual.jl. We only use the
 base `TheoryIBM` schema, because the model is a Markov chain. This tutorial largely mirrors the SIR model tutorial from
-the [R package "individual"](https://mrc-ide.github.io/individual/articles/Tutorial.html), which inspired individual.jl.
+the [R package "individual"](https://mrc-ide.github.io/individual/articles/Tutorial.html), which inspired Individual.jl.
 
 For more information about the SIR model and stochastic epidemic models in general, please see ["A primer on stochastic epidemic models: Formulation, numerical simulation, and analysis"](https://doi.org/10.1016/j.idm.2017.03.001).
 
@@ -39,9 +39,9 @@ The basic schema could be extended with further `Attr`s if needing to model indi
 ## Parameters
 
 To start, we should define some parameters. The epidemic will be simulated in a population of 1000, where 8 persons are initially infectious, whose indices are randomly sampled.
-The effective contact rate β will be a function of the deterministic R0 and recovery rate γ. We also specify Δt, which is the size of the time step.
-Because individual’s time steps are all of unit length, we scale transition probabilities by Δt to create models with different sized steps, interpreting the discrete time model as a discretization of a continuous time model.
-If the maximum time is tmax then the overall number of time steps is tmax/Δt.
+The effective contact rate `β` will be a function of the deterministic `R0` and recovery rate `γ`. We also specify `Δt`, which is the size of the time step.
+Because individual’s time steps are all of unit length, we scale transition probabilities by `Δt` to create models with different sized steps, interpreting the discrete time model as a discretization of a continuous time model.
+If the maximum time is `tmax` then the overall number of time steps is `tmax/Δt`.
 
 ````@example sir-basic
 N = 1000
