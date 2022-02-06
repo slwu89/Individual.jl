@@ -17,9 +17,6 @@ using Catlab.CategoricalAlgebra.FinSets
 using Catlab.Present
 using Catlab.Theories
 
-# using Catlab.CSetDataStructures: StructACSet
-# using Catlab.Theories: FreeSchema, SchemaDesc, SchemaDescType, CSetSchemaDescType,
-# SchemaDescTypeType, ob_num, codom_num, attr, attrtype
 
 """ ACSet definition for a basic individual-based model
     See [Catlab.jl documentation](https://algebraicjulia.github.io/Catlab.jl/stable/generated/sketches/smc/#Presentations) 

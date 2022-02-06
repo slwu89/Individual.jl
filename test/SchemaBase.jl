@@ -1,5 +1,9 @@
 using Individual.SchemaBase
+using Catlab
 using Catlab.ACSetInterface
+using Catlab.Present
+using Catlab.Theories
+using Catlab.CategoricalAlgebra
 using Test
 
 @testset "construct model with integer initial states" begin
@@ -98,5 +102,42 @@ end
     reset_states(SIR, initial_states)
     @test subpart(SIR, :state) == indexin(initial_states, state_labels)
     @test subpart(SIR, :state_update) == zeros(Int64, length(initial_states))
+
+end
+
+@testset "create_state_update is working properly" begin
+
+    @present TheoryStatesIBM <: TheoryIBM begin
+        StateStatic::Ob
+        statestatic::Hom(Person, StateStatic)
+
+        StateDynamic::Ob
+        statedynamic::Hom(Person, StateDynamic)
+        statedynamic_update::Hom(Person, StateDynamic)
+    end
+
+    @abstract_acset_type AbstractStatesIBM <: AbstractIBM
+    @acset_type StatesIBM(TheoryStatesIBM) <: AbstractStatesIBM
+
+    SIR = StatesIBM{String}()
+
+    initial_states = ["S", "I", "R", "S", "I", "R"]
+    initial_statedynamic = [1,2,3,1,2,3]
+    initial_statestatic = [1,1,1,2,2,2]
+    state_labels = ["S", "I", "R"]
+    initialize_states(SIR, initial_states, state_labels)
+
+    add_parts!(SIR, :StateStatic, 2)
+    set_subpart!(SIR, parts(SIR, :Person), :statestatic, initial_statestatic);
+
+    add_parts!(SIR, :StateDynamic, 3)
+    set_subpart!(SIR, parts(SIR, :Person), :statedynamic, initial_statedynamic);
+
+    # updating function
+    apply_state_updates = create_state_update(SIR)
+
+    # expect state and statedynamic to be updated
+    queue_state_update(SIR, collect(parts(SIR, :Person)), "R")
+
 
 end
