@@ -84,7 +84,9 @@ end
     queue_state_update(SIR, 6, "S")
     @test findfirst(x -> x == 1, subpart(SIR, :state_update)) == 6
 
-    apply_state_updates(SIR)
+    apply_state_updates = create_state_update(SIR)
+
+    apply_state_updates()
 
     new_state = initial_states
     new_state[1] = "R"

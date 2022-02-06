@@ -88,11 +88,14 @@ plot(
 
 Random.seed!(93242358)
 
+update_fn = SchemaBase.create_state_update(SIR_generated)
+
 for t = 1:steps
     infection_process_generated(t)
     recovery_process_generated(t)
     render_process_generated(t)
-    SchemaBase.test_update_Ob(SIR_generated)
+    # SchemaBase.test_update_Ob(SIR_generated)
+    update_fn()
 end
 
 plot(

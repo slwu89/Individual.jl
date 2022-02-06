@@ -82,13 +82,13 @@ set_subpart!(SIR, people, :staticstate, static_states)
         # all Obs that need updating
         for ob in 1:length(state_obs)
             # all particular states in that Ob
-            for state in parts(acs, state_obs[i])
-                people_to_update = incident(acs, state, update_homs[i])
+            for state in parts(acs, state_obs[ob])
+                people_to_update = incident(acs, state, update_homs[ob])
                 if length(people_to_update) > 0
-                    set_subpart!(acs, people_to_update, state_homs[i], state)
+                    set_subpart!(acs, people_to_update, state_homs[ob], state)
                 end
             end
-            set_subpart!(acs, update_homs[i], 0)
+            set_subpart!(acs, update_homs[ob], 0)
         end
     end
 

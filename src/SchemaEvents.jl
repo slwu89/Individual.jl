@@ -7,8 +7,7 @@ module SchemaEvents
 
 export TheorySchedulingIBM, AbstractSchedulingIBM, SchedulingIBM,
     add_event, schedule_event, get_scheduled, clear_schedule,
-    event_tick, event_process,
-    simulation_loop
+    event_tick, event_process
 
 using Catlab
 using Catlab.CategoricalAlgebra
@@ -114,8 +113,8 @@ end
 Process events which are ready to fire.
 """
 function event_process(model::AbstractSchedulingIBM, t::Int)
-# get every event ready to fire
-ready_to_fire = incident(model, 0, :delay)
+    # get every event ready to fire
+    ready_to_fire = incident(model, 0, :delay)
     if length(ready_to_fire) > 0
         # apply the event listener for each event type that is ready to fire
         for event = parts(model, :Event)
@@ -134,22 +133,24 @@ ready_to_fire = incident(model, 0, :delay)
 end
 
 """ 
-    simulation_loop(model::AbstractSchedulingIBM, processes::Union{Function, AbstractVector{Function}}, steps::Integer)
+    simulation_loop(model::AbstractIBM, processes::Union{Function, AbstractVector{Function}}, steps::Integer)
 
-A simple predefined simulation loop for individual based models with event scheduling. Processes are called first,
-followed by event listeners, and finally state updates.
+A method for simulation models with event scheduling.
 """
-function simulation_loop(model::AbstractSchedulingIBM, processes::Union{Function, AbstractVector{Function}}, steps::Integer)
+function SchemaBase.simulation_loop(model::AbstractSchedulingIBM, processes::Union{Function, AbstractVector{Function}}, steps::Integer)
     if processes isa Function
         processes = [processes]
     end
+
+    apply_state_updates = create_state_update(model)
+
     for t = 1:steps
         for p = processes
             p(t)
         end
         event_process(model, t)
         event_tick(model)
-        apply_state_updates(model)
+        apply_state_updates()
     end
 end
 

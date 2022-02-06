@@ -145,28 +145,30 @@ end
 
     schedule_event(SIR, [1,5], [2,4], "Death")
 
+    apply_state_updates = create_state_update(SIR)
+
     # tick 1
     event_tick(SIR)
     event_process(SIR, 1)
-    apply_state_updates(SIR)
+    apply_state_updates()
     @test subpart(SIR, :state) == indexin(initial_states, state_labels)
 
     # tick 2
     event_tick(SIR)
     event_process(SIR, 1)
-    apply_state_updates(SIR)
+    apply_state_updates()
     @test subpart(SIR, :state) == indexin(["D", "I", "R", "S", "I", "R"], state_labels)
 
     # tick 3
     event_tick(SIR)
     event_process(SIR, 1)
-    apply_state_updates(SIR)
+    apply_state_updates()
     @test subpart(SIR, :state) == indexin(["D", "R", "R", "R", "I", "R"], state_labels)
 
     # tick 4
     event_tick(SIR)
     event_process(SIR, 1)
-    apply_state_updates(SIR)
+    apply_state_updates()
     @test subpart(SIR, :state) == indexin(["D", "R", "R", "R", "D", "R"], state_labels)
 
 end
@@ -191,8 +193,10 @@ end
 
     schedule_event(SIR, [1,5,3], [0,0,0], "Infection")
 
+    apply_state_updates = create_state_update(SIR)
+
     event_process(SIR, 1)
-    apply_state_updates(SIR)
+    apply_state_updates()
 
     @test subpart(SIR, :state) == indexin(["I", "S", "S", "S", "I", "S"], state_labels)
 

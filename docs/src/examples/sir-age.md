@@ -13,6 +13,7 @@ using Catlab.Present, Catlab.CSetDataStructures, Catlab.Theories, Catlab.Categor
 using Plots
 using LinearAlgebra
 using Random
+using GraphViz
 ````
 
 ## Introduction

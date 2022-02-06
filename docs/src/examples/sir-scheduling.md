@@ -12,6 +12,7 @@ using Individual.SchemaEvents
 
 using Catlab.Present, Catlab.CSetDataStructures, Catlab.Theories, Catlab.CategoricalAlgebra, Catlab.Graphics, Catlab.Graphs
 using Plots
+using GraphViz
 ````
 
 ## Introduction
@@ -128,7 +129,7 @@ We need to use the `simulation_loop` from the module for models with event sched
 ````@example sir-scheduling
 state_out, render_process = render_states(SIR, steps)
 
-SchemaEvents.simulation_loop(SIR, [infection_process, recovery_process, render_process], steps)
+simulation_loop(SIR, [infection_process, recovery_process, render_process], steps)
 
 plot(
     (1:steps) * Δt,

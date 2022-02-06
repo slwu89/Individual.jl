@@ -8,6 +8,7 @@ export TheoryIBM, AbstractIBM, IBM,
     queue_state_update, apply_state_updates, 
     render_states,
     initialize_states, reset_states,
+    create_state_update,
     simulation_loop
 
 using Catlab
@@ -16,12 +17,13 @@ using Catlab.CategoricalAlgebra.FinSets
 using Catlab.Present
 using Catlab.Theories
 
-using Catlab.CSetDataStructures: StructACSet
-using Catlab.Theories: FreeSchema, SchemaDesc, SchemaDescType, CSetSchemaDescType,
-SchemaDescTypeType, ob_num, codom_num, attr, attrtype
+# using Catlab.CSetDataStructures: StructACSet
+# using Catlab.Theories: FreeSchema, SchemaDesc, SchemaDescType, CSetSchemaDescType,
+# SchemaDescTypeType, ob_num, codom_num, attr, attrtype
 
 """ ACSet definition for a basic individual-based model
-    See Catlab.jl documentation for description of the `@present` syntax.
+    See [Catlab.jl documentation](https://algebraicjulia.github.io/Catlab.jl/stable/generated/sketches/smc/#Presentations) 
+    for description of the `@present` syntax.    
 """
 @present TheoryIBM(FreeSchema) begin
     Person::Ob
@@ -90,20 +92,6 @@ function queue_state_update(model::AbstractIBM, persons, state)
     end
 end
 
-""" 
-    apply_state_updates(model::AbstractIBM)
-
-Apply all queued state updates.
-"""
-function apply_state_updates(model::AbstractIBM)
-    for state = parts(model, :State)
-        people_to_update = incident(model, state, :state_update)
-        if length(people_to_update) > 0
-            set_subpart!(model, people_to_update, :state, state)
-        end
-    end
-    set_subpart!(model, :state_update, 0)
-end
 
 """ 
     render_states(model::AbstractIBM, steps::Integer)
@@ -172,46 +160,18 @@ end
 
 
 """ 
-    simulation_loop(model::AbstractIBM, processes::Union{Function, AbstractVector{Function}}, steps::Integer)
+    create_state_update(model::AbstractIBM)
 
-A simple predefined simulation loop for basic (no events) individual based models. Processes are called first,
-followed by state updates.
+Return a function that is called with no arguments that updates any `Ob` that has an accompanying update `Ob`.
+For example, if you provide both `risk` and `risk_update`, then `risk_update` will be used to update `risk` and
+then cleared.
 """
-function simulation_loop(model::AbstractIBM, processes::Union{Function, AbstractVector{Function}}, steps::Integer)
-    if processes isa Function
-        processes = [processes]
-    end
-    for t = 1:steps
-        for p = processes
-            p(t)
-        end
-        apply_state_updates(model)
-    end
-end
-
-
-# unexported tests
-
-test_get_SchemaDesc(acs::StructACSet) = _test_get_SchemaDesc(acs)
-
-function test_get_SchemaDesc_body(s::SchemaDesc)
-    quote
-        $(s)
-    end
-end
-
-@generated function _test_get_SchemaDesc(acs::StructACSet{S, Ts, idxed}) where {S, Ts, idxed}
-    test_get_SchemaDesc_body(SchemaDesc(S))
-end
-
-
-# update state (Ob)
-test_update_Ob(acs::StructACSet) = _test_update_Ob(acs)
-
-function test_update_Ob_body(s::SchemaDesc, acs)
+function create_state_update(model::AbstractIBM)
+    s = acset_schema(model)
     homs = s.homs
     homs = map((x)->String(x), homs)
     homs = split.(homs, "_")
+
     # all the homs that end in 'update'
     update_ix = findall(homs) do x
         if length(x) < 2
@@ -220,7 +180,8 @@ function test_update_Ob_body(s::SchemaDesc, acs)
             return x[end] == "update"
         end
     end
-    # all the homs which correspond to their updates
+
+    # membership homs that correspond to the update homs
     state_ix = map(update_ix) do x
         for i = 1:length(homs)
             if i == x
@@ -231,96 +192,55 @@ function test_update_Ob_body(s::SchemaDesc, acs)
                 end
             end
         end
-        return -1
     end
-    state_ix = state_ix[state_ix .!= -1]
-    # the codomains of the updates (i.e. what are they actually updating)
-    codomains = map(update_ix) do x
+
+    # the obs that the update homs are updating
+    state_obs = map(update_ix) do x
         s.codoms[s.homs[x]]
     end
+
     state_homs = s.homs[state_ix]
     update_homs = s.homs[update_ix]
-    length(update_ix) == length(state_ix) == length(codomains) || throw(AssertionError("some update homs do not have corresponding membership homs, please check your schema"))
-    quote
-        # println("running state updates")
-        for i in 1:length($(codomains))
-            # println("i: $(i)")
-            # update the i-th Ob which specifies it
-            for state in parts(acs, $(codomains)[i])
-                println("state: $(state)")
-                people_to_update = incident(acs, state, $(update_homs)[i])
+
+    length(update_ix) == length(state_ix) == length(state_obs) || throw(AssertionError("some update homs do not have corresponding membership homs, please check your schema"))
+
+    function update()
+        # all Obs that need updating
+        for ob in 1:length(state_obs)
+            # all particular states in that Ob
+            for state in parts(model, state_obs[ob])
+                people_to_update = incident(model, state, update_homs[ob])
                 if length(people_to_update) > 0
-                    set_subpart!(acs, people_to_update, $(state_homs)[i], state)
+                    set_subpart!(model, people_to_update, state_homs[ob], state)
                 end
             end
-            set_subpart!(acs, $(update_homs)[i], 0)
+            set_subpart!(model, update_homs[ob], 0)
         end
     end
+
+    return update
 end
 
-@generated function _test_update_Ob(acs::StructACSet{S, Ts, idxed}) where {S, Ts, idxed}
-    test_update_Ob_body(SchemaDesc(S), acs)
+
+""" 
+    simulation_loop(model::AbstractIBM, processes::Union{Function, AbstractVector{Function}}, steps::Integer)
+
+A simple predefined simulation loop for basic (no events) individual based models. Processes are called first,
+followed by state updates.
+"""
+function simulation_loop(model::AbstractIBM, processes::Union{Function, AbstractVector{Function}}, steps::Integer)
+    if processes isa Function
+        processes = [processes]
+    end
+
+    apply_state_updates = create_state_update(model)
+
+    for t = 1:steps
+        for p = processes
+            p(t)
+        end
+        apply_state_updates()
+    end
 end
-
-
-
-
-# test_update_Ob(acs::StructACSet) = _test_update_Ob(acs)
-
-# function test_update_Ob_body(s::SchemaDesc)
-#     homs = s.homs
-#     homs = map((x)->String(x), homs)
-#     homs = split.(homs, "_")
-#     # all the homs that end in 'update'
-#     update_ix = findall(homs) do x
-#         if length(x) < 2
-#             return false
-#         else
-#             return x[end] == "update"
-#         end
-#     end
-#     # all the homs which correspond to their updates
-#     state_ix = map(update_ix) do x
-#         for i = 1:length(homs)
-#             if i == x
-#                 continue
-#             else
-#                 if homs[x][1:end-1] == homs[i]
-#                     return i
-#                 end
-#             end
-#         end
-#     end
-#     # the codomains of the updates (i.e. what are they actually updating)
-#     codomains = map(update_ix) do x
-#         s.codoms[s.homs[x]]
-#     end
-#     state_homs = s.homs[state_ix]
-#     update_homs = s.homs[update_ix]
-#     length(update_ix) == length(state_ix) == length(codomains) || throw(AssertionError("some update homs do not have corresponding membership homs, please check your schema"))
-#     quote
-#         # println("running state updates")
-#         for i in 1:length($(codomains))
-#             # println("i: $(i)")
-#             # update the i-th Ob which specifies it
-#             for state in parts($(s), $(codomains)[i])
-#                 println("state: $(state)")
-#                 people_to_update = incident($(s), state, $(update_homs)[i])
-#                 if length(people_to_update) > 0
-#                     set_subpart!($(s), people_to_update, $(state_homs)[i], state)
-#                 end
-#             end
-#             set_subpart!($(s), $(update_homs)[i], 0)
-#         end
-#     end
-# end
-
-# @generated function _test_update_Ob(acs::StructACSet{S, Ts, idxed}) where {S, Ts, idxed}
-#     test_update_Ob_body(SchemaDesc(S))
-# end
-
-# update state (Attr)
-
-# blah blah blah write me!!!
 
 end
