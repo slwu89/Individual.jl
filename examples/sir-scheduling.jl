@@ -6,7 +6,8 @@ using Individual.SchemaBase
 using Individual.SchemaEvents
 
 using Catlab.Present, Catlab.CSetDataStructures, Catlab.Theories, Catlab.CategoricalAlgebra, Catlab.Graphics, Catlab.Graphs
-using Plots, GraphViz
+using Plots
+using GraphViz
 
 # ## Introduction
 # This tutorial shows how to simulate the SIR model using the event scheduling schema available in Individual.jl. The stochastic
@@ -106,7 +107,7 @@ add_event(SIR, "Recovery", recovery_listener);
 
 state_out, render_process = render_states(SIR, steps)
 
-SchemaEvents.simulation_loop(SIR, [infection_process, recovery_process, render_process], steps)
+simulation_loop(SIR, [infection_process, recovery_process, render_process], steps)
 
 plot(
     (1:steps) * Δt,

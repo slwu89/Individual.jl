@@ -8,6 +8,7 @@ export TheoryIBM, AbstractIBM, IBM,
     queue_state_update, apply_state_updates, 
     render_states,
     initialize_states, reset_states,
+    create_state_update, create_attr_update,
     simulation_loop
 
 using Catlab
@@ -16,8 +17,10 @@ using Catlab.CategoricalAlgebra.FinSets
 using Catlab.Present
 using Catlab.Theories
 
+
 """ ACSet definition for a basic individual-based model
-    See Catlab.jl documentation for description of the `@present` syntax.
+    See [Catlab.jl documentation](https://algebraicjulia.github.io/Catlab.jl/stable/generated/sketches/smc/#Presentations) 
+    for description of the `@present` syntax.    
 """
 @present TheoryIBM(FreeSchema) begin
     Person::Ob
@@ -80,26 +83,12 @@ end of the time step.
 """
 function queue_state_update(model::AbstractIBM, persons, state)
     if length(persons) > 0
-        state_index = incident(model, state, :statelabel)
+        state_index = only(incident(model, state, :statelabel))
         state_index > 0 || throw(ArgumentError("state $(state) is not is the set of state labels"))
         set_subpart!(model, persons, :state_update, state_index)
     end
 end
 
-""" 
-    apply_state_updates(model::AbstractIBM)
-
-Apply all queued state updates.
-"""
-function apply_state_updates(model::AbstractIBM)
-    for state = parts(model, :State)
-        people_to_update = incident(model, state, :state_update)
-        if length(people_to_update) > 0
-            set_subpart!(model, people_to_update, :state, state)
-        end
-    end
-    set_subpart!(model, :state_update, 0)
-end
 
 """ 
     render_states(model::AbstractIBM, steps::Integer)
@@ -168,6 +157,140 @@ end
 
 
 """ 
+    create_state_update(model::AbstractIBM)
+
+Return a function that is called with no arguments that updates any `Ob` that has an accompanying update `Ob`.
+For example, if you provide both `risk` and `risk_update`, then `risk_update` will be used to update `risk` and
+then cleared.
+"""
+function create_state_update(model::AbstractIBM)
+    s = acset_schema(model)
+    homs = s.homs
+    homs = map((x)->String(x), homs)
+    homs = split.(homs, "_")
+
+    # all the homs that end in 'update'
+    update_ix = findall(homs) do x
+        if length(x) < 2
+            return false
+        else
+            return x[end] == "update"
+        end
+    end
+
+    # membership homs that correspond to the update homs
+    state_ix = map(update_ix) do x
+        for i = 1:length(homs)
+            if i == x
+                continue
+            else
+                if homs[x][1:end-1] == homs[i]
+                    return i
+                end
+            end
+        end
+    end
+
+    # the obs that the update homs are updating
+    state_obs = map(update_ix) do x
+        s.codoms[s.homs[x]]
+    end
+    
+    all(.!isnothing.(state_ix)) || throw(AssertionError("some update homs do not have corresponding membership homs, please check your schema"))
+    length(update_ix) == length(state_ix) == length(state_obs) || throw(AssertionError("some update homs do not have corresponding membership homs, please check your schema"))
+
+    state_homs = s.homs[state_ix]
+    update_homs = s.homs[update_ix]
+
+    function update()
+        # all Obs that need updating
+        for ob in 1:length(state_obs)
+            # all particular states in that Ob
+            for state in parts(model, state_obs[ob])
+                people_to_update = incident(model, state, update_homs[ob])
+                if length(people_to_update) > 0
+                    set_subpart!(model, people_to_update, state_homs[ob], state)
+                end
+            end
+            set_subpart!(model, update_homs[ob], 0)
+        end
+    end
+
+    return update
+end
+
+
+""" 
+create_attr_update(model::AbstractIBM)
+
+Return a function that is called with no arguments that updates any `Attr` that has an accompanying update `Attr`.
+For example, if you provide both `antibody` and `antibody_titre` as `Attr` objects from `Person` to the apropriate `AttrType`,
+this function will update `antibody` to the values in `antibody_titre` on each time step. This requires that when the model
+is initialized, each attribute and its update have approximately the same starting values.
+"""
+function create_attr_update(model::AbstractIBM)
+    s = acset_schema(model)
+
+    attr_sym = s.attrs
+
+    attrs = String.(s.attrs)
+    attrs = split.(attrs, "_")
+    
+    update_ix = findall(attrs) do x
+        if length(x) < 2
+            return false
+        else
+            return x[end] == "update"
+        end
+    end
+    
+    # if there are attributes which will be updated
+    if length(update_ix) > 0
+
+        attr_ix = map(update_ix) do x
+            for i = 1:length(attrs)
+                if i == x
+                    continue
+                else
+                    if attrs[x][1:end-1] == attrs[i]
+                        return i
+                    end
+                end
+            end
+        end
+        
+        all(.!isnothing.(attr_ix)) || throw(AssertionError("some update attributes do not have corresponding current attributes, please check your schema"))
+        length(update_ix) == length(attr_ix) || throw(AssertionError("some update attributes do not have corresponding current attributes, please check your schema"))
+
+        # check that the update and current attrs are approx equal
+        for i = 1:length(attr_ix)
+            if !isapprox(subpart(model, attr_sym[update_ix[i]]), subpart(model, attr_sym[attr_ix[i]]))
+                throw(AssertionError("all update attributes must be approximately equal to their current attribute values, please check this is the case"))
+            end
+        end
+
+        function update()
+            for i = 1:length(attr_ix)
+                set_subpart!(model, attr_sym[attr_ix[i]], subpart(model, attr_sym[update_ix[i]]))
+            end
+        end
+
+        return update
+         
+    else
+        # no attributes with updates
+
+        # null update fn
+        function update_null() 
+        
+        end
+
+        return update_null
+    end
+end
+
+
+""" 
     simulation_loop(model::AbstractIBM, processes::Union{Function, AbstractVector{Function}}, steps::Integer)
 
 A simple predefined simulation loop for basic (no events) individual based models. Processes are called first,
@@ -177,11 +300,16 @@ function simulation_loop(model::AbstractIBM, processes::Union{Function, Abstract
     if processes isa Function
         processes = [processes]
     end
+
+    apply_attr_updates = create_attr_update(model)
+    apply_state_updates = create_state_update(model)
+
     for t = 1:steps
         for p = processes
             p(t)
         end
-        apply_state_updates(model)
+        apply_attr_updates()
+        apply_state_updates()
     end
 end
 

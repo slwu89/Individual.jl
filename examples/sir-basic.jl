@@ -5,7 +5,8 @@ using Individual.Sampling
 using Individual.SchemaBase
 
 using Catlab.Present, Catlab.CSetDataStructures, Catlab.Theories, Catlab.CategoricalAlgebra, Catlab.Graphics, Catlab.Graphs
-using Plots, GraphViz
+using Plots
+using GraphViz
 
 # ## Introduction
 # The SIR (Susceptible-Infected-Recovered) model is the "hello, world!" model of for infectious disease simulations, 

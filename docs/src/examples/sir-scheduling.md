@@ -11,7 +11,8 @@ using Individual.SchemaBase
 using Individual.SchemaEvents
 
 using Catlab.Present, Catlab.CSetDataStructures, Catlab.Theories, Catlab.CategoricalAlgebra, Catlab.Graphics, Catlab.Graphs
-using Plots, GraphViz
+using Plots
+using GraphViz
 ````
 
 ## Introduction
@@ -26,18 +27,18 @@ to_graphviz(TheorySchedulingIBM)
 ````
 
 The schema expands on the basic `TheoryIBM` for Markov models; the relationship between states and people is the same.
-There is a set of `Event`s, which in epidemiological models might correspond to recovery, hospitalization, death, etc.
-Each event has a label for writing self-documenting models, and an `EventListener`, which can be used to store
-functions called "event listeners" which are called with the set of persons scheduled for that event on that timestep, and
-may queue state updates, and schedule or cancel other events.
+There is a new object, `Event`, which in epidemiological models might contain recovery, hospitalization, death, etc.
+There are morphisms into the objects `EventLabel` and `EventListener`. `EventLabel` is simply a string for writing
+self-documenting models. The `EventListener` stores functions called "event listeners" which are called with the
+set of persons scheduled for that event on that timestep, and may queue state updates, and schedule or cancel other events.
 
-The set of scheduled (queued) events is also a set `Scheduled`, with morphisms into the set of events and persons, and a delay `Attr`.
+The set of scheduled (queued) events is also an object `Scheduled`, with morphisms into the objects of events and persons, and a delay attribute.
 For each queued event these tell us which event will occur, who it will happen to, and after how many timesteps it (the event listener) should fire.
 This event scheduling mechanism allows events which occur after a non-Geometric (i.e. non-Markovian) delay, such as fixed delays
 or any other distribution.
 
-If we had additional combinatorial data describing each person (e.g. discrete age bin for each person), we could make another set and a morphism from people to that set.
-Additional atomic data for each person (e.g. neutralizing antibody titre) would be an `Attr` of people. In this way we can simulate
+If we had additional combinatorial data describing each person (e.g. discrete age bin for each person), we could make another attribute and a morphism from people to that attribute.
+Additional atomic data for each person (e.g. neutralizing antibody titre) would be an attribute of people. In this way we can simulate
 a general class of individual based models relevant to epidemiology, ecology, and the social sciences.
 
 ## Parameters
@@ -128,7 +129,7 @@ We need to use the `simulation_loop` from the module for models with event sched
 ````@example sir-scheduling
 state_out, render_process = render_states(SIR, steps)
 
-SchemaEvents.simulation_loop(SIR, [infection_process, recovery_process, render_process], steps)
+simulation_loop(SIR, [infection_process, recovery_process, render_process], steps)
 
 plot(
     (1:steps) * Δt,

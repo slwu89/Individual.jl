@@ -5,9 +5,10 @@ using Individual.Sampling
 using Individual.SchemaBase
 
 using Catlab.Present, Catlab.CSetDataStructures, Catlab.Theories, Catlab.CategoricalAlgebra, Catlab.Graphics, Catlab.Graphs
-using Plots, GraphViz
+using Plots
 using LinearAlgebra
 using Random
+using GraphViz
 
 # ## Introduction
 # This tutorial shows how to extend the existing abstract ACSet types to incorporate an additional attribute for modeling

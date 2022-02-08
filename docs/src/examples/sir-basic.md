@@ -10,7 +10,8 @@ using Individual.Sampling
 using Individual.SchemaBase
 
 using Catlab.Present, Catlab.CSetDataStructures, Catlab.Theories, Catlab.CategoricalAlgebra, Catlab.Graphics, Catlab.Graphs
-using Plots, GraphViz
+using Plots
+using GraphViz
 ````
 
 ## Introduction
@@ -27,12 +28,12 @@ The schema looks like this:
 to_graphviz(TheoryIBM)
 ````
 
-There are morphisms from the set `Person` into `State`. The first, `state` gives the current state of each individual in the
+There are morphisms from the object `Person` into `State`. The first, `state` gives the current state of each individual in the
 simulation. The second `state_update` is where state updates can be queued; at the end of a time step, `state` is swapped
 with `state_update` and `state_update` is reset. This ensures that state updates obey a FIFO order, and that individuals
 update synchronously.
 
-There is also a set of labels for states to make it easier to write self-documenting models.
+There are also labels for states to make it easier to write self-documenting models.
 
 The basic schema could be extended with further `Attr`s if needing to model individual level heterogeneity, like immmune respose, etc.
 
