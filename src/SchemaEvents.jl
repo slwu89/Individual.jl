@@ -142,14 +142,18 @@ function SchemaBase.simulation_loop(model::AbstractSchedulingIBM, processes::Uni
         processes = [processes]
     end
 
+    apply_attr_updates = create_attr_update(model)
     apply_state_updates = create_state_update(model)
 
     for t = 1:steps
         for p = processes
             p(t)
         end
+        # process events
         event_process(model, t)
         event_tick(model)
+        # apply updates
+        apply_attr_updates()
         apply_state_updates()
     end
 end

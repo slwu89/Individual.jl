@@ -15,6 +15,8 @@ Individual.SchemaBase.queue_state_update
 Individual.SchemaBase.render_states
 Individual.SchemaBase.initialize_states
 Individual.SchemaBase.reset_states
+Individual.SchemaBase.create_state_update
+Individual.SchemaBase.create_attr_update
 Individual.SchemaBase.simulation_loop
 ```
 

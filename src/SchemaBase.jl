@@ -8,7 +8,7 @@ export TheoryIBM, AbstractIBM, IBM,
     queue_state_update, apply_state_updates, 
     render_states,
     initialize_states, reset_states,
-    create_state_update,
+    create_state_update, create_attr_update,
     simulation_loop
 
 using Catlab
@@ -195,11 +195,12 @@ function create_state_update(model::AbstractIBM)
     state_obs = map(update_ix) do x
         s.codoms[s.homs[x]]
     end
+    
+    all(.!isnothing.(state_ix)) || throw(AssertionError("some update homs do not have corresponding membership homs, please check your schema"))
+    length(update_ix) == length(state_ix) == length(state_obs) || throw(AssertionError("some update homs do not have corresponding membership homs, please check your schema"))
 
     state_homs = s.homs[state_ix]
     update_homs = s.homs[update_ix]
-
-    length(update_ix) == length(state_ix) == length(state_obs) || throw(AssertionError("some update homs do not have corresponding membership homs, please check your schema"))
 
     function update()
         # all Obs that need updating
@@ -219,6 +220,14 @@ function create_state_update(model::AbstractIBM)
 end
 
 
+""" 
+create_attr_update(model::AbstractIBM)
+
+Return a function that is called with no arguments that updates any `Attr` that has an accompanying update `Attr`.
+For example, if you provide both `antibody` and `antibody_titre` as `Attr` objects from `Person` to the apropriate `AttrType`,
+this function will update `antibody` to the values in `antibody_titre` on each time step. This requires that when the model
+is initialized, each attribute and its update have approximately the same starting values.
+"""
 function create_attr_update(model::AbstractIBM)
     s = acset_schema(model)
 
@@ -250,6 +259,7 @@ function create_attr_update(model::AbstractIBM)
             end
         end
         
+        all(.!isnothing.(attr_ix)) || throw(AssertionError("some update attributes do not have corresponding current attributes, please check your schema"))
         length(update_ix) == length(attr_ix) || throw(AssertionError("some update attributes do not have corresponding current attributes, please check your schema"))
 
         # check that the update and current attrs are approx equal
@@ -291,12 +301,14 @@ function simulation_loop(model::AbstractIBM, processes::Union{Function, Abstract
         processes = [processes]
     end
 
+    apply_attr_updates = create_attr_update(model)
     apply_state_updates = create_state_update(model)
 
     for t = 1:steps
         for p = processes
             p(t)
         end
+        apply_attr_updates()
         apply_state_updates()
     end
 end

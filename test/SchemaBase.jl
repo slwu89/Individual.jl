@@ -107,6 +107,24 @@ end
 
 @testset "create_state_update is working properly" begin
 
+    # fails properly
+    @present TheoryStatesBadIBM <: TheoryIBM begin
+        StateStatic::Ob
+        statestatic::Hom(Person, StateStatic)
+
+        StateDynamic::Ob
+        statedynamic::Hom(Person, StateDynamic)
+        statedynamicblah_update::Hom(Person, StateDynamic)
+    end
+
+    @abstract_acset_type AbstractStatesBadIBM <: AbstractIBM
+    @acset_type StatesBadIBM(TheoryStatesBadIBM) <: AbstractStatesBadIBM
+
+    SIR = StatesBadIBM{String}()
+
+    @test_throws AssertionError create_state_update(SIR)
+
+    # works
     @present TheoryStatesIBM <: TheoryIBM begin
         StateStatic::Ob
         statestatic::Hom(Person, StateStatic)
@@ -145,5 +163,66 @@ end
     @test SIR[:state] == [3,3,3,1,2,3]
     @test SIR[:statedynamic] == [1,2,3,3,3,3]
     @test SIR[:statestatic] == initial_statestatic
+
+end
+
+@testset "create_attr_update is working properly" begin
+
+    # fails properly
+    @present TheoryAttrBadIBM <: TheoryIBM begin
+        AttrStatic::AttrType
+        attrstatic::Attr(Person, AttrStatic)
+
+        AttrDynamic::AttrType
+        attrdynamic::Attr(Person, AttrDynamic)
+        attrdynamicblah_update::Attr(Person, AttrDynamic)
+    end
+
+    @abstract_acset_type AbstractAttrBadIBM <: AbstractIBM
+    @acset_type AttrBadIBM(TheoryAttrBadIBM) <: AbstractAttrBadIBM
+
+    SIR = AttrBadIBM{String, Int64, Float64}()
+
+    @test_throws AssertionError create_attr_update(SIR)
+
+    # works
+    @present TheoryAttrIBM <: TheoryIBM begin
+        AttrStatic::AttrType
+        attrstatic::Attr(Person, AttrStatic)
+
+        AttrDynamic::AttrType
+        attrdynamic::Attr(Person, AttrDynamic)
+        attrdynamic_update::Attr(Person, AttrDynamic)
+    end
+
+    @abstract_acset_type AbstractAttrBadIBM <: AbstractIBM
+    @acset_type AttrIBM(TheoryAttrIBM) <: AbstractAttrBadIBM
+
+    SIR = AttrIBM{String, Int64, Float64}()
+
+    initial_states = ["S", "I", "R", "S", "I", "R"]
+    initial_attrstatic = [1,1,1,2,2,2]
+    initial_attrdynamic = [1.0,2.0,3.0,1.0,2.0,3.0]
+    state_labels = ["S", "I", "R"]
+    initialize_states(SIR, initial_states, state_labels)
+
+    set_subpart!(SIR, 1:6, :attrstatic, initial_attrstatic);
+    set_subpart!(SIR, 1:6, :attrdynamic, initial_attrdynamic);
+
+    @test_throws AssertionError create_attr_update(SIR)
+
+    set_subpart!(SIR, 1:6, :attrdynamic_update, initial_attrdynamic);
+
+    # updating function
+    apply_attr_updates = create_attr_update(SIR)
+
+    # expect state and statedynamic to be updated
+    set_subpart!(SIR, [1,2], :attrdynamic_update, 3.0)
+
+    apply_attr_updates()
+
+    @test SIR[:state] == indexin(initial_states, state_labels)
+    @test SIR[:attrdynamic] ≈ [3.0,3.0,3.0,1.0,2.0,3.0]
+    @test SIR[:attrstatic] == initial_attrstatic
 
 end
