@@ -29,6 +29,14 @@ to_graphviz(TheoryIBM)
 
 # The basic schema could be extended with further `Attr`s if needing to model individual level heterogeneity, like immmune respose, etc.
 
+# When extending the schema with combinatorial states (i.e. categorical states, like further stratification of compartments), these are best
+# set up as more objects `Ob` in your schema, which should inherit from `TheoryIBM` or `TheorySchedulingIBM` (see the article ["SIR example with age structure"](@ref sir_age) for an example of extending a schema).
+# You might want to add `Attr` (attributes) to your schema if each person in your simulation has associated atomic data, such as floating point (real) variables, 
+# of more complex data structures associated with them. In either case, if the added object or attribute is not static, add a duplicate `Hom` or `Attr`
+# with the same name but ending in "_update". That was `simulation_loop` knows to grab copy the "_update" object or attribute into the 
+# one containins the current state at the end of the time step. For example, you might add another `Ob` "risk", and "risk_update", to which
+# you could add updates using the ACSet interface function `set_subpart!`.
+
 # ## Parameters
 
 # To start, we should define some parameters. The epidemic will be simulated in a population of 1000, where 8 persons are initially infectious, whose indices are randomly sampled. 
