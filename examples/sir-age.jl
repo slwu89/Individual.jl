@@ -33,6 +33,7 @@ end
 @acset_type AgeIBM(TheoryAgeIBM, index = [:state, :state_update, :age], unique_index = [:statelabel]) <: AbstractAgeIBM
 
 # The schema looks like this. Note that there is an additional attribute in the schema, for age of each individual.
+# Note that because age bin will not change over the short course of the epidemic, we don't add another `Attr` "age_update".
 
 to_graphviz(TheoryAgeIBM)
 
