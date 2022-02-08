@@ -83,7 +83,7 @@ end of the time step.
 """
 function queue_state_update(model::AbstractIBM, persons, state)
     if length(persons) > 0
-        state_index = incident(model, state, :statelabel)
+        state_index = only(incident(model, state, :statelabel))
         state_index > 0 || throw(ArgumentError("state $(state) is not is the set of state labels"))
         set_subpart!(model, persons, :state_update, state_index)
     end
@@ -216,6 +216,67 @@ function create_state_update(model::AbstractIBM)
     end
 
     return update
+end
+
+
+function create_attr_update(model::AbstractIBM)
+    s = acset_schema(model)
+
+    attr_sym = s.attrs
+
+    attrs = String.(s.attrs)
+    attrs = split.(attrs, "_")
+    
+    update_ix = findall(attrs) do x
+        if length(x) < 2
+            return false
+        else
+            return x[end] == "update"
+        end
+    end
+    
+    # if there are attributes which will be updated
+    if length(update_ix) > 0
+
+        attr_ix = map(update_ix) do x
+            for i = 1:length(attrs)
+                if i == x
+                    continue
+                else
+                    if attrs[x][1:end-1] == attrs[i]
+                        return i
+                    end
+                end
+            end
+        end
+        
+        length(update_ix) == length(attr_ix) || throw(AssertionError("some update attributes do not have corresponding current attributes, please check your schema"))
+
+        # check that the update and current attrs are approx equal
+        for i = 1:length(attr_ix)
+            if !isapprox(subpart(model, attr_sym[update_ix[i]]), subpart(model, attr_sym[attr_ix[i]]))
+                throw(AssertionError("all update attributes must be approximately equal to their current attribute values, please check this is the case"))
+            end
+        end
+
+        function update()
+            for i = 1:length(attr_ix)
+                set_subpart!(model, attr_sym[attr_ix[i]], subpart(model, attr_sym[update_ix[i]]))
+            end
+        end
+
+        return update
+         
+    else
+        # no attributes with updates
+
+        # null update fn
+        function update_null() 
+        
+        end
+
+        return update_null
+    end
 end
 
 

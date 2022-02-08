@@ -1,3 +1,8 @@
+using Individual
+
+using Individual.Sampling
+using Individual.SchemaBase
+
 using Catlab
 using Catlab.CategoricalAlgebra
 using Catlab.CategoricalAlgebra.FinSets
@@ -5,73 +10,57 @@ using Catlab.Present
 using Catlab.Theories
 
 using Catlab.CSetDataStructures: StructACSet
-using Catlab.Theories: FreeSchema, SchemaDesc, SchemaDescType, CSetSchemaDescType,
-SchemaDescTypeType, ob_num, codom_num, attr, attrtype
 
 
-@present TheoryIBM(FreeSchema) begin
-    # set of people and a finite state space
-    Person::Ob
-    State::Ob
 
-    # each person's current state
-    state::Hom(Person, State)
+@present TheoryAgeIBM <: TheoryIBM begin
+    Age::AttrType
+    age::Attr(Person, Age)
 
-    # queued state transitions
-    state_update::Hom(Person, State)
-
-    # labels of finite states
-    StateLabel::AttrType
-    statelabel::Attr(State, StateLabel)
+    NAT::AttrType
+    nat::Attr(Person, NAT)
+    nat_update::Attr(Person, NAT)
 end
 
-@abstract_acset_type AbstractIBM
-@acset_type IBM(TheoryIBM,index = [:state, :state_update]) <: AbstractIBM
-
-N = 1000
-I0 = 5
-S0 = N - I0
-
-health_states = fill(1, N)
-health_states[rand(1:N, I0)] .= 2
-
-SIR = IBM{String}()
-
-people = add_parts!(SIR, :Person, N)
-add_parts!(SIR, :State, 3, statelabel = ["S", "I", "R"])
-set_subpart!(SIR, people, :state, health_states)
+@abstract_acset_type AbstractAgeIBM <: AbstractIBM
+@acset_type AgeIBM(TheoryAgeIBM, index = [:state, :state_update, :age], unique_index = [:statelabel]) <: AbstractAgeIBM
 
 
 
+initial_states = rand(["S", "I", "R"], 10)
+state_labels = ["S", "I", "R"];
+
+
+SIR = AgeIBM{String, Int64, Float64}()
+initialize_states(SIR, initial_states, state_labels);
 
 s = acset_schema(SIR)
 
-# update state (Ob)
-test_update_Ob(acs::StructACSet) = _test_update_Ob(acs)
+attrs = String.(s.attrs)
+attrs = split.(attrs, "_")
 
-function test_update_Ob_body(s::SchemaDesc, acs)
-    homs = s.homs
-    quote
-        # acs.homs[$(homs)[1]]
-        set_subpart!(acs, 1, $(homs)[1], 2)
+
+update_ix = findall(attrs) do x
+    if length(x) < 2
+        return false
+    else
+        return x[end] == "update"
     end
 end
 
-@generated function _test_update_Ob(acs::StructACSet{S, Ts, idxed}) where {S, Ts, idxed}
-    test_update_Ob_body(SchemaDesc(S), acs)
+
+attr_ix = map(update_ix) do x
+    for i = 1:length(attrs)
+        if i == x
+            continue
+        else
+            if attrs[x][1:end-1] == attrs[i]
+                return i
+            end
+        end
+    end
 end
 
-
-
-test_update_Ob(SIR)
-
-set_subpart!(SIR, 1, :state, 1)
-
-test_update_Ob(SIR)
-
-
-y=map(x) do i
-    if i == -1
-        return i
-    end
+for i = 1:length(update_ix)
+    set_subpart!(SIR, :nat, subpart(SIR, :nat_update))
 end

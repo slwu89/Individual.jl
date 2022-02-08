@@ -137,7 +137,13 @@ end
     apply_state_updates = create_state_update(SIR)
 
     # expect state and statedynamic to be updated
-    queue_state_update(SIR, collect(parts(SIR, :Person)), "R")
+    queue_state_update(SIR, [1,2], "R")
+    set_subpart!(SIR, [4,5], :statedynamic_update, 3)
 
+    apply_state_updates()
+
+    @test SIR[:state] == [3,3,3,1,2,3]
+    @test SIR[:statedynamic] == [1,2,3,3,3,3]
+    @test SIR[:statestatic] == initial_statestatic
 
 end
