@@ -122,39 +122,34 @@ end
 
 end
 
-@testset "create_state_update is working properly" begin
 
-    # fails properly
-    @present TheoryStatesBadIBM <: TheoryIBM begin
+
+
+
+
+@testset "dynamic Obs/Attrs can be updated properly" begin
+
+    @present TheoryStatesIBM <: TheoryMarkovIBM begin
         StateStatic::Ob
         statestatic::Hom(Person, StateStatic)
 
         StateDynamic::Ob
-        statedynamic::Hom(Person, StateDynamic)
-        statedynamicblah_update::Hom(Person, StateDynamic)
-    end
+        current_statedynamic::Hom(Current, StateDynamic)
+        next_statedynamic::Hom(Next, StateDynamic)
 
-    @abstract_acset_type AbstractStatesBadIBM <: AbstractIBM
-    @acset_type StatesBadIBM(TheoryStatesBadIBM) <: AbstractStatesBadIBM
+        AttrStatic::AttrType
+        attrstatic::Attr(Person, AttrStatic)
 
-    SIR = StatesBadIBM{String}()
-
-    @test_throws AssertionError create_state_update(SIR)
-
-    # works
-    @present TheoryStatesIBM <: TheoryIBM begin
-        StateStatic::Ob
-        statestatic::Hom(Person, StateStatic)
-
-        StateDynamic::Ob
-        statedynamic::Hom(Person, StateDynamic)
-        statedynamic_update::Hom(Person, StateDynamic)
+        AttrDynamic::AttrType
+        current_attrdynamic::Attr(Current, AttrDynamic)
+        next_attrdynamic::Attr(Next, AttrDynamic)
     end
 
     @abstract_acset_type AbstractStatesIBM <: AbstractIBM
     @acset_type StatesIBM(TheoryStatesIBM) <: AbstractStatesIBM
 
-    SIR = StatesIBM{String}()
+    # set up model
+    SIR = StatesIBM{String, Int64, Int64}()
 
     initial_states = ["S", "I", "R", "S", "I", "R"]
     initial_statedynamic = [1,2,3,1,2,3]
@@ -166,7 +161,29 @@ end
     set_subpart!(SIR, parts(SIR, :Person), :statestatic, initial_statestatic);
 
     add_parts!(SIR, :StateDynamic, 3)
-    set_subpart!(SIR, parts(SIR, :Person), :statedynamic, initial_statedynamic);
+    set_subpart!(SIR, parts(SIR, :Person), :current_statedynamic, initial_statedynamic);
+
+    initial_attrstatic = [1,2,3,4,5,6]
+    initial_attrdynamic = [7,8,9,10,11,12]
+
+    set_subpart!(SIR, 1:6, :attrstatic, initial_attrstatic)
+    set_subpart!(SIR, 1:6, :current_attrdynamic, initial_attrdynamic)
+
+    # apply updates
+    apply_queued_updates(SIR)
+
+    @test subpart(SIR, :statestatic) == initial_statestatic
+    @test subpart(SIR, :current_statedynamic) == initial_statedynamic
+    @test subpart(SIR, :attrstatic) == initial_attrstatic
+    @test subpart(SIR, :current_attrdynamic) == initial_attrdynamic
+    @test nparts(SIR, :Current) == 6
+    @test nparts(SIR, :Next) == 0
+
+    queue_state_update(SIR, 1, "R")
+    queue_state_update(SIR, 3, "S")
+
+    @test nparts(SIR, :Next) == 2
+    
 
     # updating function
     apply_state_updates = create_state_update(SIR)

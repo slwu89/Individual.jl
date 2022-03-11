@@ -173,7 +173,7 @@ function get_already_queued(model::AbstractIBM, persons::AbstractArray{T}) where
     return persons .∈ Ref(vcat(incident(model, filter(>(0), subpart(model, :next)), :next)...))
 end
 
-""" 
+"""
     queue_state_update(model::AbstractIBM, persons, state)
 
 For persons specified in `persons`, queue a state update to `state`, which will be applied at the
