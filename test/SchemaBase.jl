@@ -17,8 +17,10 @@ using Test
     @test nparts(SIR, :Person) == length(initial_states)
     @test nparts(SIR, :State) == length(state_labels)
     @test subpart(SIR, :statelabel) == state_labels
-    @test subpart(SIR, :state) == initial_states
-    @test subpart(SIR, :state_update) == zeros(Int64, length(initial_states))
+    @test subpart(SIR, :current) == collect(1:6)
+    @test subpart(SIR, :current_state) == initial_states
+    @test subpart(SIR, :next) == zeros(Int64, 6)
+    @test length(parts(SIR, :Next)) == 0 
 
     @test npeople(SIR) == length(initial_states)
     @test npeople(SIR, "S") == count(x -> x == 1, initial_states)
@@ -38,14 +40,16 @@ end
     initial_states = ["S", "I", "R", "S", "I", "R"]
     state_labels = ["S", "I", "R"]
 
-    SIR = IBM{String}()
+    SIR = MarkovIBM{String}()
     initialize_states(SIR, initial_states, state_labels)
 
     @test nparts(SIR, :Person) == length(initial_states)
     @test nparts(SIR, :State) == length(state_labels)
     @test subpart(SIR, :statelabel) == state_labels
-    @test subpart(SIR, :state) == indexin(initial_states, state_labels)
-    @test subpart(SIR, :state_update) == zeros(Int64, length(initial_states))
+    @test subpart(SIR, :current) == collect(1:6)
+    @test subpart(SIR, :current_state) == indexin(initial_states, state_labels)
+    @test subpart(SIR, :next) == zeros(Int64, 6)
+    @test length(parts(SIR, :Next)) == 0 
 
     @test npeople(SIR) == length(initial_states)
     @test npeople(SIR, "S") == count(x -> x == "S", initial_states)
@@ -65,7 +69,7 @@ end
     initial_states = [1,2,3,1,2,3,4]
     state_labels = ["S", "I", "R"]
 
-    SIR = IBM{String}()
+    SIR = MarkovIBM{String}()
     @test_throws ArgumentError initialize_states(SIR, initial_states, state_labels)
 
     initial_states = ["S", "I", "R", "S", "I", "R", "X"]
@@ -78,30 +82,43 @@ end
     initial_states = ["S", "I", "R", "S", "I", "R"]
     state_labels = ["S", "I", "R"]
 
-    SIR = IBM{String}()
+    SIR = MarkovIBM{String}()
     initialize_states(SIR, initial_states, state_labels)
 
     @test_throws ArgumentError queue_state_update(SIR, 1, "X")
     queue_state_update(SIR, 1, "R")
-    @test findfirst(x -> x == 3, subpart(SIR, :state_update)) == 1
+    @test nparts(SIR, :Next) == 1
+    @test incident(SIR, 3, [:next, :next_state]) == [1]
+
+    queue_state_update(SIR, 2, "R")
+    @test nparts(SIR, :Next) == 2
+    @test incident(SIR, 3, [:next, :next_state]) == [1, 2]
+
+    queue_state_update(SIR, 1, "I")
+    @test nparts(SIR, :Next) == 2
+    @test incident(SIR, 3, [:next, :next_state]) == [2]
+    @test incident(SIR, 2, [:next, :next_state]) == [1]
 
     queue_state_update(SIR, 6, "S")
-    @test findfirst(x -> x == 1, subpart(SIR, :state_update)) == 6
+    @test nparts(SIR, :Next) == 3
+    @test incident(SIR, 3, [:next, :next_state]) == [2]
+    @test incident(SIR, 2, [:next, :next_state]) == [1]
+    @test incident(SIR, 1, [:next, :next_state]) == [6]
 
-    apply_state_updates = create_state_update(SIR)
-
-    apply_state_updates()
+    apply_queued_updates(SIR)
 
     new_state = initial_states
-    new_state[1] = "R"
+    new_state[1] = "I"
+    new_state[2] = "R"
     new_state[6] = "S"
-    @test subpart(SIR, :state) == indexin(new_state, state_labels)
-    @test subpart(SIR, :state_update) == zeros(Int64, length(initial_states))
+
+    @test subpart(SIR, :current_state) == indexin(new_state, state_labels)
+    @test nparts(SIR, :Next) == 0
 
     queue_state_update(SIR, 1:length(initial_states), "I")
     reset_states(SIR, initial_states)
-    @test subpart(SIR, :state) == indexin(initial_states, state_labels)
-    @test subpart(SIR, :state_update) == zeros(Int64, length(initial_states))
+    @test subpart(SIR, :current_state) == indexin(initial_states, state_labels)
+    @test nparts(SIR, :Next) == 0
 
 end
 

@@ -168,19 +168,23 @@ function render_states(model::AbstractIBM, steps::Integer)
 end
 
 
+
+function get_already_queued(model::AbstractIBM, persons::AbstractArray{T}) where {T <: Integer}
+    return persons .∈ Ref(vcat(incident(model, filter(>(0), subpart(model, :next)), :next)...))
+end
+
 """ 
     queue_state_update(model::AbstractIBM, persons, state)
 
 For persons specified in `persons`, queue a state update to `state`, which will be applied at the
 end of the time step.
 """
-function queue_state_update(model::AbstractIBM, persons, state)
-  # to-do: check that the last update is the one thats applied.
+function queue_state_update(model::AbstractIBM, persons::AbstractArray{T}, state) where {T <: Integer}
     if length(persons) > 0
         state_index = only(incident(model, state, :statelabel))
         state_index > 0 || throw(ArgumentError("state $(state) is not is the set of state labels"))
         # find who in `persons` is already assigned a Next
-        already_scheduled = persons .∈ Ref(vcat(incident(model, filter(>(0), subpart(model, :next)), :next)...))
+        already_scheduled = get_already_queued(model, persons)
         if any(already_scheduled)
             # set `next_state` for those already-scheduled persons
             nexts = subpart(model, persons[already_scheduled], :next)
@@ -194,6 +198,10 @@ function queue_state_update(model::AbstractIBM, persons, state)
             set_subpart!(model, persons, :next, nexts)
         end
     end
+end
+
+function queue_state_update(model::AbstractIBM, persons::T, state) where {T <: Integer}
+    queue_state_update(model, [persons], state)
 end
 
 
