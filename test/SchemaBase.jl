@@ -11,7 +11,7 @@ using Test
     initial_states = [1,2,3,1,2,3]
     state_labels = ["S", "I", "R"]
 
-    SIR = IBM{String}()
+    SIR = MarkovIBM{String}()
     initialize_states(SIR, initial_states, state_labels)
 
     @test nparts(SIR, :Person) == length(initial_states)

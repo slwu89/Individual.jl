@@ -3,12 +3,12 @@
 """
 module SchemaBase
 
-export TheoryIBM, AbstractIBM, IBM,
+export TheoryMarkovIBM, AbstractIBM, MarkovIBM,
     npeople, nstate, statelabel, get_index_state,
     queue_state_update, apply_state_updates, 
     render_states,
     initialize_states, reset_states,
-    create_state_update, create_attr_update,
+    apply_queued_updates,
     simulation_loop
 
 using Catlab
@@ -16,31 +16,45 @@ using Catlab.CategoricalAlgebra
 using Catlab.CategoricalAlgebra.FinSets
 using Catlab.Present
 using Catlab.Theories
+using Catlab.Theories: FreeSchema, SchemaDesc, SchemaDescType, CSetSchemaDescType,
+SchemaDescTypeType, ob_num, codom_num, attr, attrtype
 
 
 """ ACSet definition for a basic individual-based model
     See [Catlab.jl documentation](https://algebraicjulia.github.io/Catlab.jl/stable/generated/sketches/smc/#Presentations) 
     for description of the `@present` syntax.    
 """
-@present TheoryIBM(FreeSchema) begin
-    Person::Ob
-    State::Ob
+@present TheoryMarkovIBM(FreeSchema) begin
+  Person::Ob
+  Current::Ob
+  Next::Ob
 
-    state::Hom(Person, State)
-    state_update::Hom(Person, State)
+  State::Ob
 
-    StateLabel::AttrType
-    statelabel::Attr(State, StateLabel)
+  current::Hom(Person, Current)
+  next::Hom(Person, Next)
+  
+  current_state::Hom(Current, State)
+  next_state::Hom(Next, State)
+
+  StateLabel::AttrType
+  statelabel::Attr(State, StateLabel)
 end
+
 
 """ An abstract ACSet for a basic Markov individual-based model.
 """
 @abstract_acset_type AbstractIBM
 
+
 """ 
 A concrete ACSet for a basic Markov individual-based model inheriting from `AbstractIBM`.
 """
-@acset_type IBM(TheoryIBM, index = [:state, :state_update], unique_index = [:statelabel]) <: AbstractIBM
+# the Homs current and next should be uniquely indexed but waiting on Catlab issues:
+# https://github.com/AlgebraicJulia/Catlab.jl/issues/606
+# https://github.com/AlgebraicJulia/Catlab.jl/issues/597
+@acset_type MarkovIBM(TheoryMarkovIBM, index = [:current_state, :next_state, :current, :next], unique_index = [:statelabel]) <: AbstractIBM
+
 
 """ 
     npeople(model::AbstractIBM, states)
@@ -49,7 +63,8 @@ Return the number of people in some set of `states` (an element of the State Ob)
 If called without the argument `states`, simply return the total population size.
 """
 npeople(model::AbstractIBM) = nparts(model, :Person)
-npeople(model::AbstractIBM, states) = length(incident(model, states, [:state, :statelabel]))
+npeople(model::AbstractIBM, states) = length(incident(model, states, [:current_state, :statelabel]))
+
 
 """ 
     nstate(model::AbstractIBM)
@@ -58,6 +73,7 @@ Return the size of the finite state space.
 """
 nstate(model::AbstractIBM) = nparts(model, :State)
 
+
 """ 
     statelabel(model::AbstractIBM)
 
@@ -65,47 +81,16 @@ Return the labels (names) of the states in the finite state space.
 """
 statelabel(model::AbstractIBM) = subpart(model, :statelabel)
 
+
 """ 
     get_index_state(model::AbstractIBM, states)
 
 Return an integer vector giving the persons who are in the states specified in `states`.
 If called without the argument `states`, simply return everyone's index.
 """
-get_index_state(model::AbstractIBM, states) = incident(model, states, [:state, :statelabel])
+get_index_state(model::AbstractIBM, states) = incident(model, states, [:current_state, :statelabel])
 get_index_state(model::AbstractIBM) = parts(model, :Person)
 
-
-""" 
-    queue_state_update(model::AbstractIBM, persons, state)
-
-For persons specified in `persons`, queue a state update to `state`, which will be applied at the
-end of the time step.
-"""
-function queue_state_update(model::AbstractIBM, persons, state)
-    if length(persons) > 0
-        state_index = only(incident(model, state, :statelabel))
-        state_index > 0 || throw(ArgumentError("state $(state) is not is the set of state labels"))
-        set_subpart!(model, persons, :state_update, state_index)
-    end
-end
-
-
-""" 
-    render_states(model::AbstractIBM, steps::Integer)
-
-Return a tuple whose first element is a matrix containing counts of
-states (columns) by time step (rows), and whose second element is a _process_
-function which can be used in the simulation loop.
-"""
-function render_states(model::AbstractIBM, steps::Integer)
-    out = Array{Int64}(undef, steps, nstate(model))
-
-    output_states(t::Int) = begin
-        out[t, :] = [length(incident(model, i, :state)) for i = parts(model, :State)]
-    end
-
-    return (out, output_states)
-end
 
 """ 
     initialize_states(model::AbstractIBM, initial_states, state_labels::Vector{String})
@@ -122,7 +107,9 @@ function initialize_states(model::AbstractIBM, initial_states::Vector{T}, state_
     else
         add_parts!(model, :State, length(state_labels), statelabel = state_labels)
         people = add_parts!(model, :Person, length(initial_states))
-        set_subpart!(model, people, :state, initial_states);
+        add_parts!(model, :Current, length(people))
+        set_subpart!(model, people, :current_state, initial_states)
+        set_subpart!(model, people, :current, people);
     end
 end
 
@@ -131,162 +118,198 @@ function initialize_states(model::AbstractIBM, initial_states::Vector{String}, s
     if nparts(model, :State) > 0
         reset_states(model, initial_states)
     else
-        add_parts!(model, :State, length(state_labels), statelabel = state_labels)
-        people = add_parts!(model, :Person, length(initial_states))
-        set_subpart!(model, people, :state, indexin(initial_states, state_labels));
+      initial_states_int = indexin(initial_states, state_labels)
+      add_parts!(model, :State, length(state_labels), statelabel = state_labels)
+      people = add_parts!(model, :Person, length(initial_states_int))
+      add_parts!(model, :Current, length(people))
+      set_subpart!(model, people, :current_state, initial_states_int)
+      set_subpart!(model, people, :current, people);
     end
 end
 
 
 """ 
-    initialize_states(model::AbstractIBM, initial_states)
+reset_states(model::AbstractIBM, initial_states)
 
 Reset a model's categorical states.
 """
 function reset_states(model::AbstractIBM, initial_states::Vector{T}) where {T <: Integer}
     nparts(model, :Person) == length(initial_states) || throw(ArgumentError("'initial_states' must be equal to the number of persons in the model"))
-    set_subpart!(model, :state_update, 0)
-    set_subpart!(model, :state, initial_states);
+    rem_parts!(model, :Next, parts(model, :Next))
+    people = parts(model, :Person)
+    set_subpart!(model, people, :current_state, initial_states)
+    set_subpart!(model, people, :current, people);
 end
 
 function reset_states(model::AbstractIBM, initial_states::Vector{String})
     nparts(model, :Person) == length(initial_states) || throw(ArgumentError("'initial_states' must be equal to the number of persons in the model"))
-    set_subpart!(model, :state_update, 0)
-    set_subpart!(model, :state, indexin(initial_states, subpart(model, :statelabel)));
+    rem_parts!(model, :Next, parts(model, :Next))
+    people = parts(model, :Person)
+    set_subpart!(model, people, :current_state, indexin(initial_states, subpart(model, :statelabel)))
+    set_subpart!(model, people, :current, people);
 end
 
 
 """ 
-    create_state_update(model::AbstractIBM)
+    render_states(model::AbstractIBM, steps::Integer)
 
-Return a function that is called with no arguments that updates any `Ob` that has an accompanying update `Ob`.
-For example, if you provide both `risk` and `risk_update`, then `risk_update` will be used to update `risk` and
-then cleared.
+Return a tuple whose first element is a matrix containing counts of
+states (columns) by time step (rows), and whose second element is a _process_
+function which can be used in the simulation loop.
 """
-function create_state_update(model::AbstractIBM)
-    s = acset_schema(model)
-    homs = s.homs
-    homs = map((x)->String(x), homs)
-    homs = split.(homs, "_")
+function render_states(model::AbstractIBM, steps::Integer)
+    out = Array{Int64}(undef, steps, nstate(model))
 
-    # all the homs that end in 'update'
-    update_ix = findall(homs) do x
-        if length(x) < 2
-            return false
-        else
-            return x[end] == "update"
-        end
+    output_states(t::Int) = begin
+        out[t, :] = [length(incident(model, i, :current_state)) for i = parts(model, :State)]
     end
 
-    # membership homs that correspond to the update homs
-    state_ix = map(update_ix) do x
-        for i = 1:length(homs)
-            if i == x
-                continue
-            else
-                if homs[x][1:end-1] == homs[i]
-                    return i
-                end
-            end
-        end
-    end
-
-    # the obs that the update homs are updating
-    state_obs = map(update_ix) do x
-        s.codoms[s.homs[x]]
-    end
-    
-    all(.!isnothing.(state_ix)) || throw(AssertionError("some update homs do not have corresponding membership homs, please check your schema"))
-    length(update_ix) == length(state_ix) == length(state_obs) || throw(AssertionError("some update homs do not have corresponding membership homs, please check your schema"))
-
-    state_homs = s.homs[state_ix]
-    update_homs = s.homs[update_ix]
-
-    function update()
-        # all Obs that need updating
-        for ob in 1:length(state_obs)
-            # all particular states in that Ob
-            for state in parts(model, state_obs[ob])
-                people_to_update = incident(model, state, update_homs[ob])
-                if length(people_to_update) > 0
-                    set_subpart!(model, people_to_update, state_homs[ob], state)
-                end
-            end
-            set_subpart!(model, update_homs[ob], 0)
-        end
-    end
-
-    return update
+    return (out, output_states)
 end
 
 
 """ 
-create_attr_update(model::AbstractIBM)
+    queue_state_update(model::AbstractIBM, persons, state)
 
-Return a function that is called with no arguments that updates any `Attr` that has an accompanying update `Attr`.
-For example, if you provide both `antibody` and `antibody_titre` as `Attr` objects from `Person` to the apropriate `AttrType`,
-this function will update `antibody` to the values in `antibody_titre` on each time step. This requires that when the model
-is initialized, each attribute and its update have approximately the same starting values.
+For persons specified in `persons`, queue a state update to `state`, which will be applied at the
+end of the time step.
 """
-function create_attr_update(model::AbstractIBM)
-    s = acset_schema(model)
+function queue_state_update(model::AbstractIBM, persons, state)
+  # to-do: check that the last update is the one thats applied.
+    if length(persons) > 0
+        state_index = only(incident(model, state, :statelabel))
+        state_index > 0 || throw(ArgumentError("state $(state) is not is the set of state labels"))
+        # find who in `persons` is already assigned a Next
+        already_scheduled = persons .∈ Ref(vcat(incident(model, filter(>(0), subpart(model, :next)), :next)...))
+        if any(already_scheduled)
+            # set `next_state` for those already-scheduled persons
+            nexts = subpart(model, persons[already_scheduled], :next)
+            set_subpart!(model, nexts, :next_state, state_index)
+        end
+        # people who are not already scheduled for update
+        persons = persons[.!already_scheduled]
+        if length(persons) > 0
+            nexts = add_parts!(model, :Next, length(persons), next_state = state_index)
+            nexts = length(nexts) > 1 ? nexts : only(nexts) # change if https://github.com/AlgebraicJulia/Catlab.jl/issues/606 changes
+            set_subpart!(model, persons, :next, nexts)
+        end
+    end
+end
 
-    attr_sym = s.attrs
 
-    attrs = String.(s.attrs)
-    attrs = split.(attrs, "_")
-    
-    update_ix = findall(attrs) do x
-        if length(x) < 2
-            return false
+""" 
+    apply_queued_updates(acs::AbstractIBM)
+
+Apply queued updates to dynamic Obs in an individual based model.
+The argument should be a subtype of `AbstractIBM`. Any Ob that has exactly two Homs
+with it as its codomain and Current and Next as domains of those two Homs is a dynamic Ob. 
+
+This is a generated function, meaning it uses the information about your schema (as long as it inherits from `AbstractIBM`)
+to find the dynamic Obs and Attrs and specialized code that will be fast for updating your model.
+"""
+apply_queued_updates(acs::AbstractIBM) = _apply_queued_updates(acs)
+
+# ugly but works, its like a slice category, but we need to wait on the implementation
+@generated function _apply_queued_updates(acs::StructACSet{S}) where {S}
+  # struct containing the schema
+  s = SchemaDesc(S)
+
+  # get Obs with 2 Homs with it as codomain and Current/Next as domains
+  dyn_ob = Symbol[] # dynamic obs
+  dyn_hom_current = Symbol[] # hom from Current -> dyn ob
+  dyn_hom_next = Symbol[] # hom from Next -> dyn ob
+
+  for ob in s.obs
+    # don't need to check for (Person,Current,Next)
+    if ob == :Person || ob == :Current || ob == :Next
+      continue
+    end
+    # filter obs that dont have 2 homs with it as codomain
+    if length(findall(values(s.codoms) .== ob)) != 2
+      continue
+    end
+    # k: hom, v: codomain
+    for (k, v) in s.codoms
+      if v == ob
+        if get(s.doms, k, nothing) == :Current
+          push!(dyn_hom_current, k)
+        elseif get(s.doms, k, nothing) == :Next
+          push!(dyn_hom_next, k)
         else
-            return x[end] == "update"
+          throw(ArgumentError("homs in schema into dynamic objects need to have only Next or Current as domain, $(k) does not"))
         end
+      end
     end
-    
-    # if there are attributes which will be updated
-    if length(update_ix) > 0
+    push!(dyn_ob, ob)
+  end
 
-        attr_ix = map(update_ix) do x
-            for i = 1:length(attrs)
-                if i == x
-                    continue
-                else
-                    if attrs[x][1:end-1] == attrs[i]
-                        return i
-                    end
-                end
-            end
-        end
-        
-        all(.!isnothing.(attr_ix)) || throw(AssertionError("some update attributes do not have corresponding current attributes, please check your schema"))
-        length(update_ix) == length(attr_ix) || throw(AssertionError("some update attributes do not have corresponding current attributes, please check your schema"))
+  n_dyn_ob = length(dyn_ob)
 
-        # check that the update and current attrs are approx equal
-        for i = 1:length(attr_ix)
-            if !isapprox(subpart(model, attr_sym[update_ix[i]]), subpart(model, attr_sym[attr_ix[i]]))
-                throw(AssertionError("all update attributes must be approximately equal to their current attribute values, please check this is the case"))
-            end
-        end
+  # get Attrs with 2 Homs with it as codomain and Current/Next as domains
+  dyn_attr = Symbol[] # dynamic attrs
+  dyn_hom_current_attr = Symbol[] # hom from Current -> dyn attr
+  dyn_hom_next_attr = Symbol[] # hom from Next -> dyn attr
 
-        function update()
-            for i = 1:length(attr_ix)
-                set_subpart!(model, attr_sym[attr_ix[i]], subpart(model, attr_sym[update_ix[i]]))
-            end
-        end
-
-        return update
-         
-    else
-        # no attributes with updates
-
-        # null update fn
-        function update_null() 
-        
-        end
-
-        return update_null
+  # do the same for attributes
+  for attr in s.attrs
+    # filter attrs that dont have 2 homs with it as codomain
+    if length(findall(values(s.codoms) .== attr)) != 2
+      continue
     end
+    # k: hom, v: codomain
+    for (k, v) in s.codoms
+      if v == attr
+        if get(s.doms, k, nothing) == :Current
+          push!(dyn_hom_current_attr, k)
+        elseif get(s.doms, k, nothing) == :Next
+          push!(dyn_hom_next_attr, k)
+        else
+          throw(ArgumentError("homs in schema into dynamic attrs need to have only Next or Current as domain, $(k) does not"))
+        end
+      end
+    end
+    push!(dyn_attr, attr)
+  end
+
+  n_dyn_attr = length(dyn_attr)
+
+  # code to update dyn Obs
+  code = quote 
+    nexts = parts(acs, :Next)
+    if (length(nexts) > 0)
+      who = subpart(acs, vcat(incident(acs, nexts, :next)...), :current) # need vcat(...) until switch to unique_index after refactor (#597)
+      for ob = 1:$(n_dyn_ob)
+        ob_update = subpart(acs, nexts,  getindex($(dyn_hom_next), ob))
+        set_subpart!(acs, who, getindex($(dyn_hom_current), ob), ob_update)
+      end
+    end
+  end
+
+  # update dyn Attrs if any
+  if length(n_dyn_attr) > 0
+    push!(
+      code.args,
+      quote
+        for attr = 1:$(n_dyn_attr)
+          attr_update = subpart(acs, nexts,  getindex($(dyn_hom_next_attr), attr))
+          set_subpart!(acs, who, getindex($(dyn_hom_current_attr), attr), attr_update)
+        end
+      end
+    )
+  end
+
+  # erase queued updates now that they have been applied
+  push!(
+    code.args,
+    quote
+      if (length(nexts) > 0)
+        set_subpart!(acs, :next, 0)
+        rem_parts!(acs, :Next, nexts)
+      end
+    end
+  )
+
+  code
 end
 
 
@@ -300,16 +323,11 @@ function simulation_loop(model::AbstractIBM, processes::Union{Function, Abstract
     if processes isa Function
         processes = [processes]
     end
-
-    apply_attr_updates = create_attr_update(model)
-    apply_state_updates = create_state_update(model)
-
     for t = 1:steps
         for p = processes
             p(t)
         end
-        apply_attr_updates()
-        apply_state_updates()
+        apply_queued_updates(model)
     end
 end
 

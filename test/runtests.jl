@@ -4,10 +4,10 @@ using Test
   include("Sampling.jl")
 end
 
-@testset "SchemaBase" begin
-  include("SchemaBase.jl")
-end
+# @testset "SchemaBase" begin
+#   include("SchemaBase.jl")
+# end
 
-@testset "SchemaEvents" begin
-  include("SchemaEvents.jl")
-end
+# @testset "SchemaEvents" begin
+#   include("SchemaEvents.jl")
+# end

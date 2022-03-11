@@ -20,7 +20,7 @@ using ..SchemaBase
 """ A schema for an individual-based model inheriting from `TheoryIBM`
     which allows for events to be scheduled for persons.
 """
-@present TheorySchedulingIBM <: TheoryIBM begin
+@present TheorySchedulingIBM <: TheoryMarkovIBM begin
     # set of events which occur after a timed delay
     Event::Ob
     Scheduled::Ob
@@ -141,10 +141,6 @@ function SchemaBase.simulation_loop(model::AbstractSchedulingIBM, processes::Uni
     if processes isa Function
         processes = [processes]
     end
-
-    apply_attr_updates = create_attr_update(model)
-    apply_state_updates = create_state_update(model)
-
     for t = 1:steps
         for p = processes
             p(t)
@@ -153,8 +149,7 @@ function SchemaBase.simulation_loop(model::AbstractSchedulingIBM, processes::Uni
         event_process(model, t)
         event_tick(model)
         # apply updates
-        apply_attr_updates()
-        apply_state_updates()
+        apply_queued_updates(model)
     end
 end
 
